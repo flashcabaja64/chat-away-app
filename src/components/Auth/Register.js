@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import firebase from '../../firebase';
 import { Grid, Form, Segment, Button, Header, Message, Icon} from 'semantic-ui-react';
 import useForm from '../../helpers/useForm';
@@ -7,6 +7,9 @@ import ValidationError from '../../validations/ValidationError';
 import { Link } from 'react-router-dom';
 
 const Register = () => {
+  const [resStatus, setResStatus] = useState('');
+  const [error, setError] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const { handleChange, handleSubmit, values, errors } = useForm({
     username: '',
@@ -19,11 +22,19 @@ const Register = () => {
   )
 
   function onSubmit() {
+    setLoading(true)
     firebase
       .auth()
       .createUserWithEmailAndPassword(values.email, values.password)
-      .then(user => console.log(user))
-      .catch(err => console.log(err))
+      .then(user => {
+        setLoading(false); 
+        console.log(user);
+      })
+      .catch(err => {
+        setLoading(false)
+        setError(true);
+        setResStatus(err.message)
+      })
     console.log(values)
   }
 
@@ -84,7 +95,14 @@ const Register = () => {
             >
             </Form.Input>
             {errors.passConfirm && <ValidationError message={errors.passConfirm}/>}
-            <Button color="blue" fluid size="large">Submit</Button>
+            <Button 
+              disabled={loading} 
+              className={loading ? 'loading' : ''}
+              color="blue" 
+              fluid 
+              size="large">Submit
+            </Button>
+            {error && <ValidationError message={resStatus} submitError={true}/>}
           </Segment>
         </Form>
         <Message>Already a user? <Link to="/login">Login</Link></Message>
