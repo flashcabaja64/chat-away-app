@@ -27,9 +27,9 @@ const Register = () => {
       .auth()
       .createUserWithEmailAndPassword(values.email, values.password)
       .then(user => {
-        setLoading(false); 
         console.log(user);
       })
+      .then(setLoading(false))
       .catch(err => {
         setLoading(false)
         setError(true);
