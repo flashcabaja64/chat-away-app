@@ -1,28 +1,40 @@
-import React, { useState } from 'react';
+import React from 'react';
+import firebase from '../../firebase';
 import { Grid, Form, Segment, Button, Header, Message, Icon} from 'semantic-ui-react';
+import useForm from '../../helpers/useForm';
+import validateRegister from '../../validations/validateRegister';
+import ValidationError from '../../validations/ValidationError';
 import { Link } from 'react-router-dom';
 
 const Register = () => {
 
-  const [field, setField] = useState({
+  const { handleChange, handleSubmit, values, errors } = useForm({
     username: '',
     email: '',
     password: '',
     passConfirm: ''
-  })
+  }, 
+    onSubmit,
+    validateRegister
+  )
 
-  const handleChange = (e) => {
-    setField({[e.target.name]: e.target.value})
-    console.log(field)
+  function onSubmit() {
+    firebase
+      .auth()
+      .createUserWithEmailAndPassword(values.email, values.password)
+      .then(user => console.log(user))
+      .catch(err => console.log(err))
+    console.log(values)
   }
+
   return (
     <Grid textAlign="center" verticalAlign="middle" className="app">
       <Grid.Column style={{ maxWidth: 450 }}>
-        <Header as="h2" icon color="orange" textAlign="center">
-          <Icon name="wpforms" color="orange" />
+        <Header as="h2" icon color="blue" textAlign="center">
+          <Icon name="wpforms" color="blue" />
             Register for Chat-Away
         </Header>
-        <Form size="large">
+        <Form size="large" onSubmit={handleSubmit}>
           <Segment stacked>
             <Form.Input 
               fluid 
@@ -31,9 +43,11 @@ const Register = () => {
               type="text"
               iconPosition="left"
               placeholder="Username"
+              value={values.username}
               onChange={handleChange}
             >
             </Form.Input>
+            {errors.username && <ValidationError message={errors.username}/>}
             <Form.Input 
               fluid 
               name="email"
@@ -41,19 +55,23 @@ const Register = () => {
               type="email"
               iconPosition="left"
               placeholder="Email Address"
+              value={values.email}
               onChange={handleChange}
             >
             </Form.Input>
+            {errors.email && <ValidationError message={errors.email}/>}
             <Form.Input 
               fluid 
               name="password"
               icon="lock"
-              type="email"
+              type="password"
               iconPosition="left"
               placeholder="Password"
+              value={values.password}
               onChange={handleChange}
             >
             </Form.Input>
+            {errors.password && <ValidationError message={errors.password}/>}
             <Form.Input 
               fluid 
               name="passConfirm"
@@ -61,10 +79,12 @@ const Register = () => {
               type="password"
               iconPosition="left"
               placeholder="Password Confirmation"
+              value={values.passConfirm}
               onChange={handleChange}
             >
             </Form.Input>
-            <Button color="orange" fluid size="large">Submit</Button>
+            {errors.passConfirm && <ValidationError message={errors.passConfirm}/>}
+            <Button color="blue" fluid size="large">Submit</Button>
           </Segment>
         </Form>
         <Message>Already a user? <Link to="/login">Login</Link></Message>
