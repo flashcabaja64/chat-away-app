@@ -7,13 +7,13 @@ import Register from './components/Auth/Register';
 import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
 
 const Root = () => (
-  <React.StrictMode>
+  // <React.StrictMode>
     <Switch>
       <Route exact path="/" component={App} />
       <Route path="/login" component={Login} />
       <Route path="/register" component={Register} />
     </Switch>
-  </React.StrictMode>
+  // </React.StrictMode>
 )
 
 ReactDOM.render(<Router><Root /></Router>, document.getElementById('root'));

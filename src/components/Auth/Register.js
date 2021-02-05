@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import firebase from '../../firebase';
+import md5 from 'md5';
 import { Grid, Form, Segment, Button, Header, Message, Icon} from 'semantic-ui-react';
 import useForm from '../../helpers/useForm';
 import validateRegister from '../../validations/validateRegister';
@@ -10,6 +11,9 @@ const Register = () => {
   const [resStatus, setResStatus] = useState('');
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [firebaseData, setFirebaseData] = useState({
+    users: firebase.database().ref('users')
+  })
 
   const { handleChange, handleSubmit, values, errors } = useForm({
     username: '',
@@ -26,17 +30,40 @@ const Register = () => {
     firebase
       .auth()
       .createUserWithEmailAndPassword(values.email, values.password)
-      .then(user => {
-        console.log(user);
+      .then(newUser => {  
+        newUser.user.updateProfile({
+          displayName: values.username,
+          photoURL: `http://www.gravatar.com/avatar/${md5(newUser.user.email)}?d=identicon`
+        })
+        .then(() => {
+          saveUser(newUser).then(() => console.log('user saved'));
+          setLoading(false);
+          setError(false);
+          setResStatus('');
+        })
+        .catch(err => {
+          setLoading(false);
+          setError(true);
+          setResStatus(err.message);
+        })
+        console.log(newUser);
       })
-      .then(setLoading(false))
       .catch(err => {
-        setLoading(false)
+        setLoading(false);
         setError(true);
-        setResStatus(err.message)
+        setResStatus(err.message);
       })
     console.log(values)
   }
+
+  const saveUser = createdUser => {
+    return firebaseData.users.child(createdUser.user.uid).set({
+      username: createdUser.user.displayName,
+      avatar: createdUser.user.photoURL
+    });
+  }
+
+  const handleError = (errorName) => resStatus.includes(errorName) ? 'error' : ''
 
   return (
     <Grid textAlign="center" verticalAlign="middle" className="app">
@@ -67,6 +94,7 @@ const Register = () => {
               iconPosition="left"
               placeholder="Email Address"
               value={values.email}
+              className={handleError('email')}
               onChange={handleChange}
             >
             </Form.Input>
@@ -79,6 +107,7 @@ const Register = () => {
               iconPosition="left"
               placeholder="Password"
               value={values.password}
+              className={handleError('password')}
               onChange={handleChange}
             >
             </Form.Input>
@@ -91,6 +120,7 @@ const Register = () => {
               iconPosition="left"
               placeholder="Password Confirmation"
               value={values.passConfirm}
+              className={handleError('password')}
               onChange={handleChange}
             >
             </Form.Input>
