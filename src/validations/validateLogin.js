@@ -12,11 +12,11 @@ export default function validateRegister(values) {
   }
   //Password validation errors
   if((values.password.length) === 0) {
-    errors.password = 'Password field cannot be blank'
+    errors.password = 'Password field cannot be blank';
   } else if((values.password.length) > 14) {
-    errors.password = 'Password length cannot exceed 14 characters'
+    errors.password = 'Password length cannot exceed 14 characters';
   } else if ((values.password.length) < 8) {
-    errors.password = 'Password must be more than 8 characters'
+    errors.password = 'Password must be more than 8 characters';
   } else if(!REGEX_UPPER_LOWER_NUMBER_SPECIAL.test(values.password)) {
     errors.password = 'Password must have an uppercase letter, number, and special character';
   }

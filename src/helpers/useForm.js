@@ -5,7 +5,7 @@ const useForm = (initialState, callback, validate) => {
   const [errors, setErrors] = useState({});
   const [isSubmit, setIsSubmit] = useState(false);
 
-  const handleChange = (e) => {
+  const handleChange = e => {
     const { name, value } = e.target;
     setValues({ ...values, [name]: value})
   } 

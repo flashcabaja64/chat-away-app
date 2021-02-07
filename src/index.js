@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import ReactDOM from 'react-dom';
-import 'semantic-ui-css/semantic.min.css'
+import 'semantic-ui-css/semantic.min.css';
 import App from './components/App';
 import Login from './components/Auth/Login';
 import Register from './components/Auth/Register';
@@ -17,9 +17,9 @@ const Root = () => {
 
   useEffect(() => {
     firebase.auth().onAuthStateChanged(authUser => {
-        authUser && history.push('/')
+      authUser && history.push('/')
     })
-  }) 
+  }, []) 
 
   return (
       // <React.StrictMode>
