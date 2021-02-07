@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import firebase from '../../firebase';
 import md5 from 'md5';
-import { Grid, Form, Segment, Button, Header, Message, Icon} from 'semantic-ui-react';
+import { Grid, Form, Segment, Button, Header, Message, Icon } from 'semantic-ui-react';
 import useForm from '../../helpers/useForm';
 import validateRegister from '../../validations/validateRegister';
 import ValidationError from '../../validations/ValidationError';
@@ -11,9 +11,7 @@ const Register = () => {
   const [resStatus, setResStatus] = useState('');
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [firebaseData] = useState({
-    users: firebase.database().ref('users')
-  })
+  const [firebaseData] = useState({ users: firebase.database().ref('users') })
 
   const { handleChange, handleSubmit, values, errors } = useForm({
     username: '',

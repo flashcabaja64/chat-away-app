@@ -6,17 +6,19 @@ import Login from './components/Auth/Login';
 import Register from './components/Auth/Register';
 import firebase from './firebase';
 import { createStore } from 'redux';
-import { Provider } from 'react-redux';
+import { Provider, connect } from 'react-redux';
 import { composeWithDevTools } from 'redux-devtools-extension';
 import { BrowserRouter as Router, Switch, Route, useHistory } from 'react-router-dom';
+import reducer from './reducers';
+import { setUser } from './actions'
 
-const store = createStore(() => {}, composeWithDevTools())
-
-const Root = () => {
+const Root = ({ setUser }) => {
   let history = useHistory();
 
   useEffect(() => {
     firebase.auth().onAuthStateChanged(authUser => {
+      console.log(authUser)
+      setUser(authUser)
       authUser && history.push('/')
     })
   }, []) 
@@ -32,10 +34,13 @@ const Root = () => {
   )
 }
 
+const store = createStore(reducer, composeWithDevTools())
+const RootAuth = connect(null, { setUser })(Root)
+
 ReactDOM.render(
   <Provider store={store}>
     <Router>
-      <Root />
+      <RootAuth />
     </Router>
   </Provider>, 
   document.getElementById('root')
