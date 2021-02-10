@@ -11,17 +11,21 @@ import { Provider, connect } from 'react-redux';
 import { composeWithDevTools } from 'redux-devtools-extension';
 import { BrowserRouter as Router, Switch, Route, useHistory } from 'react-router-dom';
 import reducer from './reducers';
-import { setUser } from './actions'
+import { setUser, clearUser } from './actions'
 
-const Root = ({ setUser, isLoading }) => {
+const Root = ({ setUser, isLoading, clearUser }) => {
   let history = useHistory();
 
   useEffect(() => {
     console.log(isLoading)
     firebase.auth().onAuthStateChanged(authUser => {
-      console.log(authUser)
-      setUser(authUser)
-      authUser && history.push('/')
+      if(authUser) {
+        setUser(authUser)
+        history.push('/')
+      } else {
+        clearUser();
+        history.push('/login');
+      }
     })
   }, []) 
 
@@ -40,7 +44,7 @@ const mapStateFromProps = state => ({
 })
 
 const store = createStore(reducer, composeWithDevTools())
-const RootAuth = connect(mapStateFromProps, { setUser })(Root)
+const RootAuth = connect(mapStateFromProps, { setUser, clearUser })(Root)
 
 ReactDOM.render(
   <Provider store={store}>

@@ -2,7 +2,7 @@ import React from 'react';
 import { Menu } from 'semantic-ui-react';
 import UserNav from './UserNav'
 
-const SideBar = () => {
+const SideBar = ({ currentUser }) => {
   return (
     <Menu
       size="large"
@@ -11,7 +11,7 @@ const SideBar = () => {
       vertical
       style={{ background: '#4C3C4C', fontSize: '1.2rem'}}
     >
-      <UserNav />
+      <UserNav currentUser={currentUser} />
     </Menu>
   )
 }

@@ -1,12 +1,25 @@
-import React from 'react';
+import React, { useState } from 'react';
+import firebase from '../../firebase';
+import { connect } from 'react-redux';
 import { Dropdown, Grid, Header, Icon } from 'semantic-ui-react';
 
-const UserNav = () => {
+const UserNav = ({ currentUser }) => {
+  const [currUser] = useState({
+    user: currentUser
+  })
+
+  const handleSignOut = () => {
+    firebase
+      .auth()
+      .signOut()
+      .then(() => console.log('logged out'))
+      .catch((err) => console.log(err))
+  }
 
   const dropdownOptions = () => [
     {
       key: 'user',
-      text: <span>Signed in as <strong>User</strong></span>,
+      text: <span>Signed in as <strong>{currUser.user.displayName}</strong></span>,
       disabled: true
     },
     {
@@ -15,7 +28,7 @@ const UserNav = () => {
     },
     {
       key: 'log-out',
-      text: <span>Log Out</span>
+      text: <span onClick={handleSignOut}>Log Out</span>
     }
   ]
 
@@ -30,7 +43,7 @@ const UserNav = () => {
         </Grid.Row>
         <Header style={{ padding: '0.25em' }} as="h4" inverted>
           <Dropdown 
-            trigger={<span>User</span>}
+            trigger={<span>{currUser.user.displayName}</span>}
             options={dropdownOptions()}
           />
         </Header>
