@@ -35,8 +35,8 @@ const UserNav = ({ currentUser }) => {
     <Grid style={{ background: '#4C3C4C' }}>
       <Grid.Column>
         <Grid.Row style={{ padding: '1.2em', margin: 0 }}>
-          <Header inverted floated="left" as="h2">
-            <Icon name="code" />
+          <Header inverted floated="left" as="h2" style={{ marginRight: 0 }}>
+            <Icon name="code"/>
             <Header.Content>Chat-Away</Header.Content>
           </Header>
         </Grid.Row>
