@@ -1,12 +1,26 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import firebase from '../../firebase';
 import { Menu, Icon, Modal, Form, Input, Button } from 'semantic-ui-react';
 
-const Channels = () => {
-  const [channels] = useState([]);
-  const [channelData] = useState({channels: firebase.database().ref('channels') })
+const Channels = ({ currentUser }) => {
+  const [channels, setChannels] = useState([]);
+  const [channelData] = useState({ channels: firebase.database().ref('channels') })
+  const [currUser] = useState({ user: currentUser })
   const [form, setForm] = useState({});
   const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    populateChannels()
+  }, [])
+
+  const populateChannels = () => {
+    let getChannels = [];
+    channelData.channels.on('child_added', (child) => {
+      getChannels.push(child.val());
+      setChannels(getChannels)
+      console.log(getChannels)
+    })
+  } 
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value })
@@ -15,7 +29,7 @@ const Channels = () => {
   const onSubmit = (e) => {
     e.preventDefault();
    if(isValidForm(form)) {
-     console.log('form valid')
+    addChannel();
    } else {
      console.log('invalid')
    }
@@ -26,7 +40,27 @@ const Channels = () => {
   }
 
   const addChannel = () => {
-    
+    const key = channelData.channels.push().key;
+
+    const newChannel = {
+      id: key,
+      name: form.channelName,
+      details: form.channelDetails,
+      createdBy: {
+        name: currUser.user.displayName,
+        avatar: currUser.user.photoURL
+      }
+    };
+
+    channelData.channels
+      .child(key)
+      .update(newChannel)
+      .then(() => {
+        setForm({});
+        setOpen(false);
+        console.log('channel created')
+      })
+      .catch(err => console.log(err))
   }
 
   return (
@@ -43,6 +77,16 @@ const Channels = () => {
             onClick={() => setOpen(true)} 
           />
         </Menu.Item>
+        {channels.length > 0 && channels.map(channel => (
+          <Menu.Item
+            key={channel.id}
+            onClick={() => console.log(channel)}
+            name={channel.name}
+            style={{ opacity: 0.7 }}
+          >
+            # { channel.name }
+          </Menu.Item>
+        ))}
       </Menu.Menu>
 
       <Modal

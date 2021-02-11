@@ -13,7 +13,7 @@ const SideBar = ({ currentUser }) => {
       style={{ background: '#4C3C4C', fontSize: '1.2rem'}}
     >
       <UserNav currentUser={currentUser} />
-      <Channels />
+      <Channels currentUser={currentUser} />
     </Menu>
   )
 }
