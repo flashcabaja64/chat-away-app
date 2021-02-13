@@ -1,30 +1,55 @@
 import React, { useState, useEffect } from 'react';
 import firebase from '../../firebase';
 import { connect } from 'react-redux';
-import { setCurrentChannel } from '../../actions/'
+import { setCurrentChannel } from '../../actions/';
 import { Menu, Icon, Modal, Form, Input, Button } from 'semantic-ui-react';
 
 const Channels = ({ currentUser, setCurrentChannel }) => {
   const [channels, setChannels] = useState([]);
+  const [initialLoad, setInitialLoad] = useState(true);
   const [channelData] = useState({ channels: firebase.database().ref('channels') })
   const [currUser] = useState({ user: currentUser })
+  const [active, setActive] = useState({})
   const [form, setForm] = useState({});
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    populateChannels()
-  }, [])
+    populateChannels();
+    return () => {
+      stopChannelFetch();
+    }
+  },[initialLoad])
 
   const populateChannels = () => {
     let getChannels = [];
-    channelData.channels.on('child_added', (child) => {
+     channelData.channels.on('child_added', (child) => {
       getChannels.push(child.val());
-      setChannels(getChannels)
+      setChannels(getChannels);
+      setInitialChannel();
     })
   } 
 
+  const stopChannelFetch = () => {
+    channelData.channels.off()
+  }
+
   const changeChannel = channel => {
+    setActiveChannel(channel)
     setCurrentChannel(channel)
+  }
+
+  const setActiveChannel = channel => {
+    setActive({ activeChannel: channel.id })
+  }
+
+  const setInitialChannel = () => {
+    setInitialLoad(true)
+    const initialChannel = channels[0]
+    if(initialLoad && channels.length > 0) {
+      setCurrentChannel(initialChannel);
+      setActiveChannel(initialChannel);
+    }
+    setInitialLoad(false);
   }
 
   const handleChange = (e) => {
@@ -88,6 +113,7 @@ const Channels = ({ currentUser, setCurrentChannel }) => {
             onClick={() => changeChannel(channel)}
             name={channel.name}
             style={{ opacity: 0.7 }}
+            active={channel.id === active.activeChannel}
           >
             # { channel.name }
           </Menu.Item>
