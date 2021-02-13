@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import firebase from '../../firebase';
+import { connect } from 'react-redux';
+import { setCurrentChannel } from '../../actions/'
 import { Menu, Icon, Modal, Form, Input, Button } from 'semantic-ui-react';
 
-const Channels = ({ currentUser }) => {
+const Channels = ({ currentUser, setCurrentChannel }) => {
   const [channels, setChannels] = useState([]);
   const [channelData] = useState({ channels: firebase.database().ref('channels') })
   const [currUser] = useState({ user: currentUser })
@@ -18,9 +20,12 @@ const Channels = ({ currentUser }) => {
     channelData.channels.on('child_added', (child) => {
       getChannels.push(child.val());
       setChannels(getChannels)
-      console.log(getChannels)
     })
   } 
+
+  const changeChannel = channel => {
+    setCurrentChannel(channel)
+  }
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value })
@@ -80,7 +85,7 @@ const Channels = ({ currentUser }) => {
         {channels.length > 0 && channels.map(channel => (
           <Menu.Item
             key={channel.id}
-            onClick={() => console.log(channel)}
+            onClick={() => changeChannel(channel)}
             name={channel.name}
             style={{ opacity: 0.7 }}
           >
@@ -129,4 +134,4 @@ const Channels = ({ currentUser }) => {
   )
 }
 
-export default Channels;
+export default connect(null, { setCurrentChannel })(Channels);
