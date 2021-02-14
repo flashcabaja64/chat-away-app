@@ -14,40 +14,55 @@ const Channels = ({ currentUser, setCurrentChannel }) => {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    populateChannels();
-    return () => {
-      stopChannelFetch();
-    }
-  },[initialLoad])
+    getChannels();
+    
+    console.log('initialLoad: ',initialLoad)
+    return () => stopChannelFetch();
+  },[])
+  
+  useEffect(() => {
+    setInitialChannel();
+    setInitialLoad(true)
+    console.log('useeffect: ', channels)
+    console.log('initialLoad: ',initialLoad)
+  }, [channels])
 
-  const populateChannels = () => {
-    let getChannels = [];
-     channelData.channels.on('child_added', (child) => {
-      getChannels.push(child.val());
-      setChannels(getChannels);
-      setInitialChannel();
+  console.log('initialLoad: ',initialLoad)
+  console.log('channels: ', channels)
+
+  const getChannels = () => {
+    let allChannels = [];
+    channelData.channels.on('child_added', (child) => {
+      allChannels.push(child.val());
+      setChannels(allChannels);
+      
     })
+    
+    setInitialChannel();
+    
+    console.log('inside getChannel',channels)
   } 
 
   const stopChannelFetch = () => {
-    channelData.channels.off()
+    channelData.channels.off();
   }
 
   const changeChannel = channel => {
-    setActiveChannel(channel)
-    setCurrentChannel(channel)
+    setActiveChannel(channel);
+    setCurrentChannel(channel);
   }
 
   const setActiveChannel = channel => {
-    setActive({ activeChannel: channel.id })
+    setActive({ activeChannel: channel.id });
   }
 
   const setInitialChannel = () => {
-    setInitialLoad(true)
     const initialChannel = channels[0]
+    //console.log('inside setInitial',channels)
     if(initialLoad && channels.length > 0) {
       setCurrentChannel(initialChannel);
       setActiveChannel(initialChannel);
+      console.log('initial channel')
     }
     setInitialLoad(false);
   }
