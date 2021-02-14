@@ -15,13 +15,8 @@ const Channels = ({ currentUser, setCurrentChannel }) => {
 
   useEffect(() => {
     getChannels();
-    
-    console.log('initialLoad: ',initialLoad)
     return () => stopChannelFetch();
   }, [])
-
-  console.log('initialLoad: ',initialLoad)
-  console.log('channels: ', channels)
 
   const getChannels = () => {
     setChannels([]);
@@ -31,10 +26,7 @@ const Channels = ({ currentUser, setCurrentChannel }) => {
         setInitialChannel(updated);
         return updated;
       });
-
     });
-    
-    console.log('inside getChannel',channels)
   } 
 
   const stopChannelFetch = () => {
@@ -55,7 +47,6 @@ const Channels = ({ currentUser, setCurrentChannel }) => {
       const initialChannel = updated[0];
       setCurrentChannel(initialChannel);
       setActiveChannel(initialChannel);
-      console.log('initial channel')
       setInitialLoad(false); 
     }
   }
