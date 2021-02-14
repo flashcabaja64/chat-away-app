@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import firebase from '../../firebase';
 import { connect } from 'react-redux';
 import { setCurrentChannel } from '../../actions/';
-import { Menu, Icon, Modal, Form, Input, Button } from 'semantic-ui-react';
+import { Menu, Icon, Modal, Form, Input, Button, Popup } from 'semantic-ui-react';
 
 const Channels = ({ currentUser, setCurrentChannel }) => {
   const [channels, setChannels] = useState([]);
@@ -100,11 +100,18 @@ const Channels = ({ currentUser, setCurrentChannel }) => {
             <Icon name="exchange" />CHANNELS{" "}
           </span>
           ({ channels.length }) 
-          <Icon 
-            style={{ cursor: 'pointer' }} 
-            name="add" 
-            onClick={() => setOpen(true)} 
+          <Popup
+            content="Add Channels"
+            size="tiny"
+            trigger={
+              <Icon 
+                style={{ cursor: 'pointer' }} 
+                name="add" 
+                onClick={() => setOpen(true)} 
+              />
+            }
           />
+          
         </Menu.Item>
         {channels.length > 0 && channels.map(channel => (
           <Menu.Item
