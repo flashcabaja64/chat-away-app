@@ -4,9 +4,11 @@ import firebase from '../../firebase';
 import MessageForm from './MessageForm';
 import MessagesHeader from './MessagesHeader';
 
-const Messages = ({ currentChannel }) => {
+const Messages = ({ currentChannel, currentUser }) => {
   const [messageData] = useState({ messages: firebase.database().ref('messages') });
-  const [channel] = useState(currentChannel)
+  const [channel] = useState(currentChannel);
+  const [user] = useState(currentUser);
+  
   return (
     <>
       <MessagesHeader />
@@ -16,6 +18,7 @@ const Messages = ({ currentChannel }) => {
       <MessageForm 
         messageData={messageData.messages}
         currentChannel={channel}
+        currentUser={user}
       />
     </>
   )
