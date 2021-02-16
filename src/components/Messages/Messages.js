@@ -23,12 +23,13 @@ const Messages = ({ currentChannel, currentUser }) => {
   }
 
   const addMessages = channelId => {
-    let fetchedMessages = [];
+    //let fetchedMessages = [];
+    setMessages([]);
     messageData.messages.child(channelId).on('child_added', msg => {
-      fetchedMessages.push(msg.val())
-      setMessages(fetchedMessages);
+      setMessages((state) => {
+        return [...state, msg.val()]
+      })
       setMessageLoaded(false);
-      //console.log(fetchedMessages);
     })
   }
 
