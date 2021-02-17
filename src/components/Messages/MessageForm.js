@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import firebase from '../../firebase';
-import UploadModal from './UploadModal'
+import UploadModal from './UploadModal';
+import ProgressBar from './ProgressBar';
 import { Segment, Button, Input } from 'semantic-ui-react';
 
 const MessageForm = ({ messageData, currentChannel, currentUser }) => {
@@ -12,7 +13,7 @@ const MessageForm = ({ messageData, currentChannel, currentUser }) => {
   const [error, setError] = useState([])
   const [modal, setModal] = useState(false);
   const [uploadState, setUploadState] = useState('')
-  const [uploadTask, setUploadTask] = useState(null);
+  //const [uploadTask, setUploadTask] = useState(null);
   const [storageData] = useState(firebase.storage().ref());
   const [uploadProgress, setUploadProgress] = useState(0);
 
@@ -69,28 +70,27 @@ const MessageForm = ({ messageData, currentChannel, currentUser }) => {
     setUploadState('uploading');
 
     try {
-      setUploadTask(storageData.child(filePath).put(file, data));
-      uploadTask.then(() => {
-        uploadTask.on('state_change', data => {
-          const progress = Math.round((data.bytesTransferred / data.totalBytes) * 100)
-          setUploadProgress(progress)
-        })
-      })
-      .then(() => {
-        uploadTask.snapshot.ref.getDownloadURL().then(url => {
-          sendFileMessage(url, msgData, channelPath)
-        })
-      })
-      .catch(err => {
+      //setUploadTask(storageData.child(filePath).put(file, data));
+      const task = storageData.child(filePath).put(file, data)
+      //console.log(task)
+      task.on('state_change', data => {
+        const progress = Math.round((data.bytesTransferred / data.totalBytes) * 100)
+        setUploadProgress(progress)
+      },
+      (err) => {
         setError([...error, err]);
         setUploadState('error');
-        setUploadTask(null);
+        //setUploadTask(null);
         console.log(err);
+      }, () => {
+        task.snapshot.ref.getDownloadURL().then(url => {
+          sendFileMessage(url, msgData, channelPath)
+        })
       })
     } catch (err) {
       setError([...error, err]);
       setUploadState('error');
-      setUploadTask(null);
+      //setUploadTask(null);
       console.log(err);
     }
   }
@@ -99,9 +99,7 @@ const MessageForm = ({ messageData, currentChannel, currentUser }) => {
     msgData.child(channelPath)
       .push()
       .set(createMessage(url))
-      .then(() => {
-        setUploadState('done');
-      })
+      .then(() => setUploadState('done'))
       .catch(err => {
         setError([...error, err]);
         console.log(err)
@@ -137,12 +135,16 @@ const MessageForm = ({ messageData, currentChannel, currentUser }) => {
           labelPosition="right"
           icon="upload"
         />
-        <UploadModal
-          modal={modal}
-          closeModal={() => setModal(false)}
-          uploadFile={uploadFile}
-        />
       </Button.Group>
+      <UploadModal
+        modal={modal}
+        closeModal={() => setModal(false)}
+        uploadFile={uploadFile}
+      />
+      <ProgressBar 
+        uploadState={uploadState}
+        uploadProgress={uploadProgress}
+      />
     </Segment>
   )
 }
