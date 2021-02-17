@@ -68,7 +68,7 @@ const MessageForm = ({ messageData, currentChannel, currentUser }) => {
     const msgData = messageData;
     const filePath = `chat/public/${uuidv4()}.jpg`;
     setUploadState('uploading');
-
+    
     try {
       //setUploadTask(storageData.child(filePath).put(file, data));
       const task = storageData.child(filePath).put(file, data)
@@ -99,7 +99,9 @@ const MessageForm = ({ messageData, currentChannel, currentUser }) => {
     msgData.child(channelPath)
       .push()
       .set(createMessage(url))
-      .then(() => setUploadState('done'))
+      .then(() => {
+        setUploadState('done');
+      })
       .catch(err => {
         setError([...error, err]);
         console.log(err)
@@ -132,6 +134,7 @@ const MessageForm = ({ messageData, currentChannel, currentUser }) => {
           color="teal"
           onClick={() => setModal(true)}
           content="Upload"
+          disabled={uploadState === 'uploading'}
           labelPosition="right"
           icon="upload"
         />

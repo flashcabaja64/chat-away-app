@@ -11,6 +11,7 @@ const Messages = ({ currentChannel, currentUser }) => {
   const [messageLoaded, setMessageLoaded] = useState(true)
   const [channel] = useState(currentChannel);
   const [user] = useState(currentUser);
+  const [userCount, setUserCount] = useState(0);
 
   useEffect(() => {
     if(channel && user) {
@@ -30,7 +31,21 @@ const Messages = ({ currentChannel, currentUser }) => {
         return [...state, msg.val()]
       })
       setMessageLoaded(false);
+      totalUsers(messages)
     })
+  }
+
+  const totalUsers = messages => {
+    const users = messages.reduce((acc, message) => {
+      if(!acc.includes(message.user.name)) {
+        acc.push(message.user.name)
+        console.log(message.user.name)
+      }
+      return acc
+    }, [])
+    const countUsers = users.length
+    setUserCount(countUsers)
+    //console.log(users)
   }
 
   const displayMessages = messages => (
@@ -42,10 +57,15 @@ const Messages = ({ currentChannel, currentUser }) => {
       />
     ))
   )
+
+  const displayChannelName = channel => channel ? `# ${channel.name}` : '';
   
   return (
     <>
-      <MessagesHeader />
+      <MessagesHeader 
+        channelName={displayChannelName(channel)}
+        userCount={userCount}
+      />
       <Segment>
         <Comment.Group className="messages">
           {displayMessages(messages)}

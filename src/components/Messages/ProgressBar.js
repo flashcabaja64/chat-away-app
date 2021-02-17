@@ -9,7 +9,7 @@ const ProgressBar = ({ uploadState, uploadProgress}) => {
         percent={uploadProgress}
         progress
         indicating
-        size="medium"
+        size="small"
         inverted
       />
     )
