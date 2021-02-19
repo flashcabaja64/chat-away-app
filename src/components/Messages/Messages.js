@@ -4,6 +4,7 @@ import firebase from '../../firebase';
 import MessageForm from './MessageForm';
 import Message from './Message';
 import MessagesHeader from './MessagesHeader';
+import { findAllByTestId } from '@testing-library/react';
 
 const Messages = ({ currentChannel, currentUser }) => {
   const [messageData] = useState({ messages: firebase.database().ref('messages') });
@@ -11,13 +12,25 @@ const Messages = ({ currentChannel, currentUser }) => {
   const [messageLoaded, setMessageLoaded] = useState(true)
   const [channel] = useState(currentChannel);
   const [user] = useState(currentUser);
-  const [userCount, setUserCount] = useState(0);
+  const [userCount, setUserCount] = useState('');
+  const [searchMessage, setSearchMessage] = useState('');
+  const [searching, setSearching] = useState(false);
+  const [searchResults, setSearchResults] = useState([])
 
   useEffect(() => {
     if(channel && user) {
       getMessages(channel.id)
     }
   }, [])
+
+  useEffect(() => {
+    searchChannelMessage();
+  },[searchMessage])
+
+  useEffect(() => {
+    setMessageLoaded(false);
+    totalUsers(messages);
+  }, [messages])
 
   const getMessages = channelId => {
     addMessages(channelId)
@@ -30,22 +43,37 @@ const Messages = ({ currentChannel, currentUser }) => {
       setMessages((state) => {
         return [...state, msg.val()]
       })
-      setMessageLoaded(false);
-      totalUsers(messages)
+      
     })
+  }
+
+  const handleSearchInput = e => {
+    setSearchMessage(e.target.value);
+    setSearching(true);
+  }
+
+  const searchChannelMessage = () => {
+    const channelMessages = [...messages];
+    const regex = new RegExp(searchMessage, 'gi');
+    const results = channelMessages.reduce((acc, message) => {
+      if(message.content.match(regex) && message.content || message.user.name.match(regex)) {
+        acc.push(message)
+      }
+      return acc
+    },[])
+    setSearchResults([...results])
+    setTimeout(() => setSearching(false), 250);
   }
 
   const totalUsers = messages => {
     const users = messages.reduce((acc, message) => {
       if(!acc.includes(message.user.name)) {
         acc.push(message.user.name)
-        console.log(message.user.name)
       }
       return acc
     }, [])
-    const countUsers = users.length
-    setUserCount(countUsers)
-    //console.log(users)
+    const plural = users.length > 1 || users.length === 0 ? 'Users' : 'User'
+    setUserCount(`${users.length} ${plural}`)
   }
 
   const displayMessages = messages => (
@@ -65,10 +93,12 @@ const Messages = ({ currentChannel, currentUser }) => {
       <MessagesHeader 
         channelName={displayChannelName(channel)}
         userCount={userCount}
+        handleSearch={handleSearchInput}
+        searching={searching}
       />
       <Segment>
         <Comment.Group className="messages">
-          {displayMessages(messages)}
+          {searchMessage ? displayMessages(searchResults) : displayMessages(messages)}
         </Comment.Group>
       </Segment>
       <MessageForm 
