@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import firebase from '../../firebase';
+import { connect } from 'react-redux';
+import { setCurrentChannel, setPrivateChannel } from '../../actions'
 import { Menu, Icon } from 'semantic-ui-react';
 
-const DirectMessage = ({ currentUser }) => {
+const DirectMessage = ({ currentUser, setCurrentChannel, setPrivateChannel }) => {
   const [users, setUsers] = useState([]);
   const [user] = useState(currentUser);
+  const [activeChannel, setActiveChannel] = useState('')
   const [userData] = useState(firebase.database().ref('users'));
   const [onlineData] = useState(firebase.database().ref('.info/connected'));
   const [statusData] = useState(firebase.database().ref('presence'));
@@ -24,6 +27,7 @@ const DirectMessage = ({ currentUser }) => {
   }
 
   const getUsers = currentUserId => {
+    setUsers([])
     userData.on('child_added', (users) => {
       if(currentUserId !== users.key) {
         setUsers(state => {
@@ -59,6 +63,26 @@ const DirectMessage = ({ currentUser }) => {
 
   const isUserOnline = (user) => user.status === 'online';
 
+  const changeChannel = user => {
+    const channelId = getChannelId(user.uid);
+    const channelData = {
+      id: channelId,
+      name: user.username
+    }
+    
+    setCurrentChannel(channelData);
+    setPrivateChannel(true);
+    setActiveChannel(user.uid)
+    //console.log(user)
+  }
+
+  const getChannelId = userId => {
+    const currentId = user.uid;
+    return userId < currentId 
+      ? `${userId}/${currentId}` 
+      : `${currentId}/${userId}`
+  }
+
   return (
     <Menu.Menu className="menu">
       <Menu.Item>
@@ -70,7 +94,8 @@ const DirectMessage = ({ currentUser }) => {
       {users.map(user => (
         <Menu.Item
           key={user.uid}
-          onClick={() => console.log(user)}
+          active={user.uid === activeChannel}
+          onClick={() => changeChannel(user)}
           style={{ opacity: 0.7, fontStyle: 'italic' }}
         >
           <Icon
@@ -84,4 +109,4 @@ const DirectMessage = ({ currentUser }) => {
   )
 }
 
-export default DirectMessage;
+export default connect(null, { setCurrentChannel, setPrivateChannel })(DirectMessage);

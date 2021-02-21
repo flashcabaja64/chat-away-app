@@ -5,7 +5,7 @@ import UploadModal from './UploadModal';
 import ProgressBar from './ProgressBar';
 import { Segment, Button, Input } from 'semantic-ui-react';
 
-const MessageForm = ({ messageData, currentChannel, currentUser }) => {
+const MessageForm = ({ messageData, currentChannel, currentUser, getMessagesData, isPrivateChannel }) => {
   const [message, setMessage] = useState('');
   const [user] = useState(currentUser);
   const [channel] = useState(currentChannel);
@@ -43,7 +43,7 @@ const MessageForm = ({ messageData, currentChannel, currentUser }) => {
   const sendMessage = () => {
     if(message) {
       setIsLoading(true)
-      messageData
+      getMessagesData()
         .child(channel.id)
         .push()
         .set(createMessage())
@@ -63,10 +63,19 @@ const MessageForm = ({ messageData, currentChannel, currentUser }) => {
   }
   const handleError = (errorName) => error.some(err => err.message.includes(errorName)) ? 'error' : ''
 
+  const getPath = () => {
+    if(isPrivateChannel) {
+      return `chat/private-${channel.id}`
+    } else {
+      return `chat/public`
+    }
+  }
+
   const uploadFile = (file, data) => {
     const channelPath = channel.id;
     const msgData = messageData;
-    const filePath = `chat/public/${uuidv4()}.jpg`;
+    const dataz = getMessagesData()
+    const filePath = `${getPath()}/${uuidv4()}.jpg`;
     setUploadState('uploading');
     
     try {
@@ -84,7 +93,7 @@ const MessageForm = ({ messageData, currentChannel, currentUser }) => {
         console.log(err);
       }, () => {
         task.snapshot.ref.getDownloadURL().then(url => {
-          sendFileMessage(url, msgData, channelPath)
+          sendFileMessage(url, dataz, channelPath)
         })
       })
     } catch (err) {

@@ -5,7 +5,7 @@ import MessageForm from './MessageForm';
 import Message from './Message';
 import MessagesHeader from './MessagesHeader';
 
-const Messages = ({ currentChannel, currentUser }) => {
+const Messages = ({ currentChannel, currentUser, isPrivateChannel }) => {
   const [messageData] = useState({ messages: firebase.database().ref('messages') });
   const [messages, setMessages] = useState([]);
   const [messageLoaded, setMessageLoaded] = useState(true)
@@ -14,6 +14,8 @@ const Messages = ({ currentChannel, currentUser }) => {
   const [userCount, setUserCount] = useState('');
   const [searchMessage, setSearchMessage] = useState('');
   const [searchResults, setSearchResults] = useState([])
+  const [privateChannel] = useState(isPrivateChannel)
+  const [privateMessageData] = useState(firebase.database().ref('privateMessages'))
 
   useEffect(() => {
     if(channel && user) {
@@ -36,11 +38,16 @@ const Messages = ({ currentChannel, currentUser }) => {
 
   const addMessages = channelId => {
     setMessages([]);
-    messageData.messages.child(channelId).on('child_added', msg => {
+    const data = getMessagesData();
+    data.child(channelId).on('child_added', msg => {
       setMessages((state) => {
         return [...state, msg.val()]
       })
     })
+  }
+
+  const getMessagesData = () => {
+    return privateChannel ? privateMessageData : messageData.messages
   }
 
   const handleSearchInput = e => {
@@ -80,14 +87,19 @@ const Messages = ({ currentChannel, currentUser }) => {
     ))
   )
 
-  const displayChannelName = channel => channel ? `# ${channel.name}` : '';
-  
+  const displayChannelName = channel => {
+    return channel 
+      ? `${privateChannel ? '@' : '#'}${channel.name}`
+      : ''
+  }
+
   return (
     <>
       <MessagesHeader 
         channelName={displayChannelName(channel)}
         userCount={userCount}
         handleSearch={handleSearchInput}
+        isPrivateChannel={isPrivateChannel}
       />
       <Segment>
         <Comment.Group className="messages">
@@ -98,6 +110,8 @@ const Messages = ({ currentChannel, currentUser }) => {
         messageData={messageData.messages}
         currentChannel={channel}
         currentUser={user}
+        isPrivateChannel={isPrivateChannel}
+        getMessagesData={getMessagesData}
       />
     </>
   )
