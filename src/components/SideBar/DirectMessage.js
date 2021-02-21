@@ -7,12 +7,10 @@ const DirectMessage = ({ currentUser }) => {
   const [user] = useState(currentUser);
   const [userData] = useState(firebase.database().ref('users'));
   const [onlineData] = useState(firebase.database().ref('.info/connected'));
-  const [statusData] = useState(firebase.database().ref('presence'))
+  const [statusData] = useState(firebase.database().ref('presence'));
 
   useEffect(() => {
-    if(user) {
-      getUsers(user.uid)
-    }
+    user && getUsers(user.uid);
   },[])
 
   const addStatusToUser = (userId, connected = true) => {
@@ -22,7 +20,7 @@ const DirectMessage = ({ currentUser }) => {
       }
       return acc.concat(user)
     }, [])
-    setUsers((state) => [...state, updatedUsers])
+    setUsers([updatedUsers])
   }
 
   const getUsers = currentUserId => {
@@ -40,7 +38,7 @@ const DirectMessage = ({ currentUser }) => {
       if(online.val() === true) {
         const ref = statusData.child(currentUserId);
         ref.set(true);
-        ref.onDisconnect.remove(err => {
+        ref.onDisconnect().remove(err => {
           if(err !== null) {
             console.log(err)
           }
@@ -79,7 +77,7 @@ const DirectMessage = ({ currentUser }) => {
             name="circle"
             color={isUserOnline(user) ? 'green' : 'red'}
           />
-          @ {user.name}
+          @ {user.username}
         </Menu.Item>
       ))}
     </Menu.Menu>
