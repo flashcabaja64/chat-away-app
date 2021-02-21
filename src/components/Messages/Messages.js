@@ -4,7 +4,6 @@ import firebase from '../../firebase';
 import MessageForm from './MessageForm';
 import Message from './Message';
 import MessagesHeader from './MessagesHeader';
-import { findAllByTestId } from '@testing-library/react';
 
 const Messages = ({ currentChannel, currentUser }) => {
   const [messageData] = useState({ messages: firebase.database().ref('messages') });
@@ -14,7 +13,6 @@ const Messages = ({ currentChannel, currentUser }) => {
   const [user] = useState(currentUser);
   const [userCount, setUserCount] = useState('');
   const [searchMessage, setSearchMessage] = useState('');
-  const [searching, setSearching] = useState(false);
   const [searchResults, setSearchResults] = useState([])
 
   useEffect(() => {
@@ -37,19 +35,16 @@ const Messages = ({ currentChannel, currentUser }) => {
   }
 
   const addMessages = channelId => {
-    //let fetchedMessages = [];
     setMessages([]);
     messageData.messages.child(channelId).on('child_added', msg => {
       setMessages((state) => {
         return [...state, msg.val()]
       })
-      
     })
   }
 
   const handleSearchInput = e => {
     setSearchMessage(e.target.value);
-    setSearching(true);
   }
 
   const searchChannelMessage = () => {
@@ -62,7 +57,6 @@ const Messages = ({ currentChannel, currentUser }) => {
       return acc
     },[])
     setSearchResults([...results])
-    setTimeout(() => setSearching(false), 250);
   }
 
   const totalUsers = messages => {
@@ -77,7 +71,7 @@ const Messages = ({ currentChannel, currentUser }) => {
   }
 
   const displayMessages = messages => (
-    messages.length && messages.map(msg => (
+    messages.length > 0 && messages.map(msg => (
       <Message 
         key={msg.timestamp}
         message={msg}
@@ -94,7 +88,6 @@ const Messages = ({ currentChannel, currentUser }) => {
         channelName={displayChannelName(channel)}
         userCount={userCount}
         handleSearch={handleSearchInput}
-        searching={searching}
       />
       <Segment>
         <Comment.Group className="messages">

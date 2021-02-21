@@ -2,6 +2,7 @@ import React from 'react';
 import { Menu } from 'semantic-ui-react';
 import UserNav from './UserNav';
 import Channels from './Channels';
+import DirectMessage from './DirectMessage'
 
 const SideBar = ({ currentUser }) => {
   return (
@@ -14,6 +15,7 @@ const SideBar = ({ currentUser }) => {
     >
       <UserNav currentUser={currentUser} />
       <Channels currentUser={currentUser} />
+      <DirectMessage currentUser={currentUser} />
     </Menu>
   )
 }
