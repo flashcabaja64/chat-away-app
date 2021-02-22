@@ -97,9 +97,7 @@ const Channels = ({ currentUser, setCurrentChannel, setPrivateChannel }) => {
       }
     })
 
-    if(count > 0) {
-      return count
-    }
+    if(count > 0) return count
   }
 
   const setActiveChannel = channel => {
@@ -158,6 +156,22 @@ const Channels = ({ currentUser, setCurrentChannel, setPrivateChannel }) => {
       .catch(err => console.log(err))
   }
 
+  const displayChannels = channels => (
+    channels.length > 0 && channels.map(channel => (
+      <Menu.Item
+        key={channel.id}
+        onClick={() => changeChannel(channel)}
+        name={channel.name}
+        style={{ opacity: 0.7 }}
+        active={channel.id === active.activeChannel}
+      >
+        {getTotalNotification(channel) && (
+          <Label color="red">{getTotalNotification(channel)}</Label>
+        )}
+        # { channel.name }
+      </Menu.Item>
+  )));
+
   return (
     <>
       <Menu.Menu className="menu">
@@ -179,20 +193,7 @@ const Channels = ({ currentUser, setCurrentChannel, setPrivateChannel }) => {
           />
           
         </Menu.Item>
-        {channels.length > 0 && channels.map(channel => (
-          <Menu.Item
-            key={channel.id}
-            onClick={() => changeChannel(channel)}
-            name={channel.name}
-            style={{ opacity: 0.7 }}
-            active={channel.id === active.activeChannel}
-          >
-            {getTotalNotification(channel) && (
-              <Label color="red">{getTotalNotification(channel)}</Label>
-            )}
-            # { channel.name }
-          </Menu.Item>
-        ))}
+        {displayChannels(channels)}
       </Menu.Menu>
 
       <Modal
