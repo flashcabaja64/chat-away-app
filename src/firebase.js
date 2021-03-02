@@ -6,6 +6,7 @@ import 'firebase/storage';
 let firebaseConfig = {
   apiKey: "AIzaSyBO-6_IyCFpO9Tl1MuLCgK_AjPVlC0jTb8",
   authDomain: "chat-away-server.firebaseapp.com",
+  databaseURL: "https://chat-away-server-default-rtdb.firebaseio.com",
   projectId: "chat-away-server",
   storageBucket: "chat-away-server.appspot.com",
   messagingSenderId: "515686941803",

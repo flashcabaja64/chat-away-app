@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Segment, Comment } from 'semantic-ui-react';
+import { connect } from 'react-redux';
+import { setUserPosts } from '../../actions'
 import firebase from '../../firebase';
 import MessageForm from './MessageForm';
 import Message from './Message';
 import MessagesHeader from './MessagesHeader';
 
-const Messages = ({ currentChannel, currentUser, isPrivateChannel }) => {
+const Messages = ({ currentChannel, currentUser, isPrivateChannel, setUserPosts }) => {
   const [messageData] = useState({ messages: firebase.database().ref('messages') });
   const [messages, setMessages] = useState([]);
   const [messageLoaded, setMessageLoaded] = useState(true)
@@ -15,16 +17,17 @@ const Messages = ({ currentChannel, currentUser, isPrivateChannel }) => {
   const [userCount, setUserCount] = useState('');
   const [searchMessage, setSearchMessage] = useState('');
   const [searchResults, setSearchResults] = useState([])
-  const [isFavorite, setIsFavorite] = useState(false);
   const [privateChannel] = useState(isPrivateChannel)
   const [privateMessageData] = useState(firebase.database().ref('privateMessages'))
+  const [isFavorite, setIsFavorite] = useState(false);
 
   useEffect(() => {
     if(channel && user) {
       getMessages(channel.id)
       addUserFavorites(channel.id, user.uid)
     }
-  }, [])
+    //console.log(channel,user)
+  }, [user])
 
   useEffect(() => {
     searchChannelMessage();
@@ -36,8 +39,8 @@ const Messages = ({ currentChannel, currentUser, isPrivateChannel }) => {
   }, [messages])
 
   useEffect(() => {
-    favoriteChannel();
-  }, [isFavorite])
+    //favoriteChannel()
+  }, [])
 
   const getMessages = channelId => {
     addMessages(channelId)
@@ -50,12 +53,44 @@ const Messages = ({ currentChannel, currentUser, isPrivateChannel }) => {
       .once('value')
       .then(data => {
         if(data.val() !== null) {
-          console.log(data.val())
+          //console.log(data.val())
           const channelIds = Object.keys(data.val());
           const prevFavs = channelIds.includes(channelId);
           setIsFavorite(prevFavs)
+          //console.log(channelIds, channelId)
+          //console.log(isFavorite)
         }
       })
+  }
+
+  const handleFavorites = () => {
+    setIsFavorite(state => !state);
+  }
+
+  const favoriteChannel = () => {
+    if(isFavorite) {
+      userData
+        .child(`${user.uid}/favorites`)
+        .update({
+          [channel.id]: {
+            name: channel.name,
+            details: channel.details,
+            createdBy: {
+              name: channel.createdBy.name,
+              avatar: channel.createdBy.avatar
+            }
+          }
+        })
+    } else {
+      userData
+        .child(`${user.uid}/favorites`)
+        .child(channel.id)
+        .remove(err => {
+          if(err !== null) {
+            console.error(err)
+          }
+        })
+    }
   }
 
   const addMessages = channelId => {
@@ -65,6 +100,7 @@ const Messages = ({ currentChannel, currentUser, isPrivateChannel }) => {
       setMessages((state) => {
         return [...state, msg.val()]
       })
+      totalUsersPosts(messages)
     })
   }
 
@@ -99,6 +135,22 @@ const Messages = ({ currentChannel, currentUser, isPrivateChannel }) => {
     setUserCount(`${users.length} ${plural}`)
   }
 
+  const totalUsersPosts = messages => {
+    let userPosts = messages.reduce((acc, message) => {
+      if(message.user.name in acc) {
+        acc[message.user.name].count += 1;
+      } else {
+        acc[message.user.name] = {
+          avatar: message.user.avatar,
+          count: 1
+        }
+      }
+      return acc
+    }, {})
+    console.log(userPosts)
+    setUserPosts(userPosts)
+  }
+
   const displayMessages = messages => (
     messages.length > 0 && messages.map(msg => (
       <Message 
@@ -113,38 +165,6 @@ const Messages = ({ currentChannel, currentUser, isPrivateChannel }) => {
     return channel 
       ? `${privateChannel ? '@' : '#'}${channel.name}`
       : ''
-  }
-
-  const handleFavorites = () => {
-    setIsFavorite((state) => !state)
-  }
-
-  const favoriteChannel = () => {
-    console.log(userData
-      .child(`${user.uid}/favorites`).child(channel.id))
-    if(isFavorite) {
-      userData
-        .child(`${user.uid}/favorites`)
-        .update({
-          [channel.id]: {
-            name: channel.name,
-            details: channel.details,
-            createdBy: {
-                name: channel.createdBy.name,
-                avatar: channel.createdBy.avatar
-            }
-          }
-        })
-    } else {
-      userData
-        .child(`${user.uid}/favorites`)
-        .child(channel.id)
-        .remove(err => {
-          if(err !== null) {
-            console.error(err)
-          }
-        })
-    }
   }
 
   return (
@@ -173,4 +193,4 @@ const Messages = ({ currentChannel, currentUser, isPrivateChannel }) => {
   )
 }
 
-export default Messages;
+export default connect(null, { setUserPosts })(Messages);

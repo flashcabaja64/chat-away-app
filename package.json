@@ -8,6 +8,7 @@
     "@testing-library/user-event": "^12.6.2",
     "emoji-mart": "^3.0.0",
     "firebase": "^8.2.5",
+    "firebase-tools": "^9.5.0",
     "md5": "^2.3.0",
     "mime-types": "^2.1.28",
     "moment": "^2.29.1",
