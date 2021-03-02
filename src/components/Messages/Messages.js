@@ -26,8 +26,7 @@ const Messages = ({ currentChannel, currentUser, isPrivateChannel, setUserPosts 
       getMessages(channel.id)
       addUserFavorites(channel.id, user.uid)
     }
-    //console.log(channel,user)
-  }, [user])
+  }, [])
 
   useEffect(() => {
     searchChannelMessage();
@@ -94,13 +93,13 @@ const Messages = ({ currentChannel, currentUser, isPrivateChannel, setUserPosts 
   }
 
   const addMessages = channelId => {
-    setMessages([]);
+    let updatedMessages = [];
     const data = getMessagesData();
     data.child(channelId).on('child_added', msg => {
-      setMessages((state) => {
-        return [...state, msg.val()]
-      })
-      totalUsersPosts(messages)
+      updatedMessages.push(msg.val())
+      setMessages(updatedMessages)
+      setMessageLoaded(false)
+      totalUsersPosts(updatedMessages)
     })
   }
 
@@ -147,7 +146,6 @@ const Messages = ({ currentChannel, currentUser, isPrivateChannel, setUserPosts 
       }
       return acc
     }, {})
-    console.log(userPosts)
     setUserPosts(userPosts)
   }
 

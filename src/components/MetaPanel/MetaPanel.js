@@ -14,6 +14,10 @@ const MetaPanel = ({ isPrivateChannel, currentChannel, userPosts }) => {
 
   if(privateChannel) return null
 
+  const formatPost = (count) => {
+    return count === 1 ? `${count} post` : `${count} posts`
+  }
+
   const displayTopPosters = posts => (
     Object.entries(posts)
       .sort((a, b) => b[1] - a[1])
@@ -22,10 +26,11 @@ const MetaPanel = ({ isPrivateChannel, currentChannel, userPosts }) => {
           <Image avatar src={val.avatar} />
           <List.Content>
             <List.Header as="a">{key}</List.Header>
-            <List.Description>{val.count} posts</List.Description>
+            <List.Description>{formatPost(val.count)}</List.Description>
           </List.Content>
         </List.Item>
       ))
+      .slice(0, 3)
   )
 
   return (
