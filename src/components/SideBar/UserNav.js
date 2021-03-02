@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import firebase from '../../firebase';
 import { Dropdown, Grid, Header, Icon, Image } from 'semantic-ui-react';
 
-const UserNav = ({ currentUser }) => {
+const UserNav = ({ currentUser, primaryColor }) => {
   const [currUser] = useState({
     user: currentUser
   })
@@ -32,7 +32,7 @@ const UserNav = ({ currentUser }) => {
   ]
 
   return (
-    <Grid style={{ background: '#4C3C4C' }}>
+    <Grid style={{ background: primaryColor }}>
       <Grid.Column>
         <Grid.Row style={{ padding: '1.2em', margin: 0 }}>
           <Header inverted floated="left" as="h2" style={{ marginRight: 0 }}>

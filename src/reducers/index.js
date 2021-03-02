@@ -15,8 +15,8 @@ const userReducer = (state = initialState, action) => {
       }
     case actionTypes.CLEAR_USER:
         return {
-           ...state,
-           isLoading: false 
+          ...state,
+          isLoading: false 
         }
     default:
       return state;
@@ -51,9 +51,27 @@ const channelReducer = (state = initialChannelState, action) => {
   }
 }
 
+const initalColorState = {
+  primaryColor: '#4c3c4c',
+  secondaryColor: '#eee'
+}
+
+const colors_reducer = (state = initalColorState, action) => {
+  switch(action.type) {
+    case actionTypes.SET_COLORS:
+      return {
+        primaryColor: action.payload.primaryColor,
+        secondaryColor: action.payload.secondaryColor
+      }
+    default:
+      return state;
+  }
+}
+
 const reducer = combineReducers({
   user: userReducer,
-  channel: channelReducer
+  channel: channelReducer,
+  colors: colors_reducer
 });
 
 export default reducer;

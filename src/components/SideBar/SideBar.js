@@ -5,16 +5,19 @@ import Channels from './Channels';
 import Favorites from './Favorites';
 import DirectMessage from './DirectMessage'
 
-const SideBar = ({ currentUser }) => {
+const SideBar = ({ currentUser, primaryColor }) => {
   return (
     <Menu
       size="large"
       inverted
       fixed="left"
       vertical
-      style={{ background: '#4C3C4C', fontSize: '1.2rem'}}
+      style={{ background: primaryColor, fontSize: '1.2rem'}}
     >
-      <UserNav currentUser={currentUser} />
+      <UserNav 
+        currentUser={currentUser} 
+        primaryColor={primaryColor}
+      />
       <Favorites currentUser={currentUser} />
       <Channels currentUser={currentUser} />
       <DirectMessage currentUser={currentUser} />
