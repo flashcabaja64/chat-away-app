@@ -20,6 +20,7 @@ const Messages = ({ currentChannel, currentUser, isPrivateChannel, setUserPosts 
   const [privateChannel] = useState(isPrivateChannel)
   const [privateMessageData] = useState(firebase.database().ref('privateMessages'))
   const [isFavorite, setIsFavorite] = useState(false);
+  const [load, setLoad] = useState(false);
 
   useEffect(() => {
     if(channel && user) {
@@ -37,12 +38,13 @@ const Messages = ({ currentChannel, currentUser, isPrivateChannel, setUserPosts 
     totalUsers(messages);
   }, [messages])
 
-  useEffect(() => {
-    //favoriteChannel()
-  }, [])
+  // useEffect(() => {
+  //   favoriteChannel()
+  // }, [load])
 
   const getMessages = channelId => {
     addMessages(channelId)
+    setLoad(true);
   }
 
   const addUserFavorites = (channelId, userId) => {

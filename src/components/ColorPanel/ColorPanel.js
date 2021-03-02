@@ -12,12 +12,13 @@ const ColorPanel = ({ currentUser, setColors }) => {
   const [primary, setPrimary] = useState('');
   const [secondary, setSecondary] = useState('');
   const [userColors, setUserColors] = useState([]);
+  const [load, setLoad] = useState(false)
 
   useEffect(() => {
     if(user) {
       addColors(user.uid)
     }
-  }, [])
+  }, [load])
 
   const addColors = (userId) => {
     let userColors = [];
@@ -25,6 +26,7 @@ const ColorPanel = ({ currentUser, setColors }) => {
       userColors.unshift(color.val());
       setUserColors(userColors)
     })
+    setLoad(true)
   }
 
   const openModal = () => setOpen(true);
@@ -45,9 +47,7 @@ const ColorPanel = ({ currentUser, setColors }) => {
         <Divider/>
         <div className="color_container" onClick={() => setColors(color.primary, color.secondary)}>
           <div className="color_square" style={{ background: color.primary }}>
-            <div className="color_overlay" style={{ background: color.secondary }}>
-
-            </div>
+            <div className="color_overlay" style={{ background: color.secondary }}></div>
           </div>
         </div>
       </React.Fragment>
