@@ -56,7 +56,7 @@ const initalColorState = {
   secondaryColor: '#eee'
 }
 
-const colors_reducer = (state = initalColorState, action) => {
+const colorsReducer = (state = initalColorState, action) => {
   switch(action.type) {
     case actionTypes.SET_COLORS:
       return {
@@ -71,7 +71,7 @@ const colors_reducer = (state = initalColorState, action) => {
 const reducer = combineReducers({
   user: userReducer,
   channel: channelReducer,
-  colors: colors_reducer
+  colors: colorsReducer
 });
 
 export default reducer;
