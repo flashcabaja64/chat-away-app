@@ -6,6 +6,7 @@ import firebase from '../../firebase';
 import MessageForm from './MessageForm';
 import Message from './Message';
 import MessagesHeader from './MessagesHeader';
+import Typing from './Typing';
 
 const Messages = ({ currentChannel, currentUser, isPrivateChannel, setUserPosts }) => {
   const [messageData] = useState({ messages: firebase.database().ref('messages') });
@@ -19,8 +20,11 @@ const Messages = ({ currentChannel, currentUser, isPrivateChannel, setUserPosts 
   const [searchResults, setSearchResults] = useState([])
   const [privateChannel] = useState(isPrivateChannel)
   const [privateMessageData] = useState(firebase.database().ref('privateMessages'))
+  const [typingData] = useState(firebase.database().ref('typing'))
+  const [connectedData] = useState(firebase.database().ref('.info/connected'))
   const [isFavorite, setIsFavorite] = useState(false);
   const [load, setLoad] = useState(false);
+  const [typingUsers, setTypingUsers] = useState([]);
 
   useEffect(() => {
     if(channel && user) {
@@ -44,7 +48,44 @@ const Messages = ({ currentChannel, currentUser, isPrivateChannel, setUserPosts 
 
   const getMessages = channelId => {
     addMessages(channelId)
+    addTyping(channelId)
     setLoad(true);
+  }
+
+  const addTyping = channelId => {
+    let typingUsers = [];
+
+    typingData.child(channelId).on('child_added', typing => {
+      if(typing.key !== user.uid) {
+        typingUsers = typingUsers.concat({
+          id: typing.key,
+          name: typing.val()
+        })
+        setTypingUsers(typingUsers)
+      }
+    })
+
+    typingData.child(channelId).on('child_removed', typing => {
+      const index = typingUsers.findIndex(user => user.id === typing.key);
+      if(index !== -1) {
+        typingUsers = typingUsers.filter(user => user.id !== typing.key);
+        setTypingUsers(typingUsers)
+      }
+    })
+
+    connectedData.on('value', connect => {
+      if(connect.val() === true) {
+        typingData
+          .child(channelId)
+          .child(user.uid)
+          .onDisconnect()
+          .remove(err => {
+            if(err !== null) {
+              console.error(err)
+            }
+          })
+      }
+    })
   }
 
   const addUserFavorites = (channelId, userId) => {
@@ -161,6 +202,14 @@ const Messages = ({ currentChannel, currentUser, isPrivateChannel, setUserPosts 
     ))
   )
 
+  const displayTypingUsers = users => (
+    users.length > 0 && users.map(user => (
+      <div key={user.id} style={{ display: 'flex', alignItems: 'center', marginBottom: '0.2em' }}>
+        <span className="user_typing"></span>{user.name} is typing<Typing />
+      </div>
+    ))
+  )
+
   const displayChannelName = channel => {
     return channel 
       ? `${privateChannel ? '@' : '#'}${channel.name}`
@@ -180,6 +229,8 @@ const Messages = ({ currentChannel, currentUser, isPrivateChannel, setUserPosts 
       <Segment>
         <Comment.Group className="messages">
           {searchMessage ? displayMessages(searchResults) : displayMessages(messages)}
+
+          {displayTypingUsers(typingUsers)}
         </Comment.Group>
       </Segment>
       <MessageForm 

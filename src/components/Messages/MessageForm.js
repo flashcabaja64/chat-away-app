@@ -16,9 +16,24 @@ const MessageForm = ({ messageData, currentChannel, currentUser, getMessagesData
   //const [uploadTask, setUploadTask] = useState(null);
   const [storageData] = useState(firebase.storage().ref());
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [typingData] = useState(firebase.database().ref('typing'))
 
   const handleChange = e => {
     setMessage(e.target.value)
+  }
+
+  const handleKeyDown = () => {
+    if(message) {
+      typingData
+        .child(channel.id)
+        .child(user.uid)
+        .set(user.displayName)
+    } else {
+      typingData
+        .child(channel.id)
+        .child(user.uid)
+        .remove()
+    }
   }
 
   const createMessage = (fileURL = null) => {
@@ -51,6 +66,10 @@ const MessageForm = ({ messageData, currentChannel, currentUser, getMessagesData
           setIsLoading(false);
           setMessage('')
           setError([])
+          typingData
+            .child(channel.id)
+            .child(user.uid)
+            .remove()
         })
         .catch(err => {
           console.log(err)
@@ -123,6 +142,7 @@ const MessageForm = ({ messageData, currentChannel, currentUser, getMessagesData
         fluid
         name="message"
         onChange={handleChange}
+        onKeyDown={handleKeyDown}
         value={message}
         style={{ marginBottom: '0.7em' }}
         label={<Button icon='add'/>}

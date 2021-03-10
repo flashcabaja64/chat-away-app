@@ -10,7 +10,7 @@ const UserNav = ({ currentUser, primaryColor }) => {
   const [previewImage, setPreviewImage] = useState('');
   const [croppedImage, setCroppedImage] = useState('');
   const [uploadedCroppedImage, setUploadedCroppedImage] = useState('');
-  const [startUpload, setStartUpload] = useState(false);
+  //const [startUpload, setStartUpload] = useState(false);
   const [blob, setBlob] = useState('');
   const avatarEditor = useRef(null);
   const [storageData] = useState(firebase.storage().ref());
@@ -80,7 +80,7 @@ const UserNav = ({ currentUser, primaryColor }) => {
         image.ref.getDownloadURL().then((url) => {
           setUploadedCroppedImage(url);
           changeAvatar();
-          setStartUpload(true);
+          //setStartUpload(true);
         })
       })
       .catch(err => console.log(err))
