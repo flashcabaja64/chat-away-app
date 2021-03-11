@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Segment, Comment } from 'semantic-ui-react';
 import { connect } from 'react-redux';
 import { setUserPosts } from '../../actions'
@@ -25,13 +25,15 @@ const Messages = ({ currentChannel, currentUser, isPrivateChannel, setUserPosts 
   const [isFavorite, setIsFavorite] = useState(false);
   const [load, setLoad] = useState(false);
   const [typingUsers, setTypingUsers] = useState([]);
+  const messageEnd = useRef(null);
+  const mounted = useRef()
 
   useEffect(() => {
     if(channel && user) {
       getMessages(channel.id)
       addUserFavorites(channel.id, user.uid)
     }
-  }, [])
+  }, []);
 
   useEffect(() => {
     searchChannelMessage();
@@ -45,6 +47,20 @@ const Messages = ({ currentChannel, currentUser, isPrivateChannel, setUserPosts 
   // useEffect(() => {
   //   favoriteChannel()
   // }, [load])
+
+  useEffect(() => {
+    if(!mounted.current) {
+      mounted.current = true
+    } else {
+      if(messageEnd) {
+        scrollToBottom()
+      }
+    }
+  })
+
+  const scrollToBottom = () => {
+    messageEnd.current.scrollIntoView({ behavior: 'smooth' })
+  }
 
   const getMessages = channelId => {
     addMessages(channelId)
@@ -229,8 +245,8 @@ const Messages = ({ currentChannel, currentUser, isPrivateChannel, setUserPosts 
       <Segment>
         <Comment.Group className="messages">
           {searchMessage ? displayMessages(searchResults) : displayMessages(messages)}
-
           {displayTypingUsers(typingUsers)}
+          <div ref={messageEnd}></div>
         </Comment.Group>
       </Segment>
       <MessageForm 

@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import firebase from '../../firebase';
 import UploadModal from './UploadModal';
 import ProgressBar from './ProgressBar';
 import { Segment, Button, Input } from 'semantic-ui-react';
+import { Picker, emojiIndex } from 'emoji-mart';
+import 'emoji-mart/css/emoji-mart.css';
 
 const MessageForm = ({ messageData, currentChannel, currentUser, getMessagesData, isPrivateChannel }) => {
   const [message, setMessage] = useState('');
@@ -16,7 +18,9 @@ const MessageForm = ({ messageData, currentChannel, currentUser, getMessagesData
   //const [uploadTask, setUploadTask] = useState(null);
   const [storageData] = useState(firebase.storage().ref());
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [typingData] = useState(firebase.database().ref('typing'))
+  const [typingData] = useState(firebase.database().ref('typing'));
+  const [emojiPicker, setEmojiPicker] = useState(false);
+  const messageInputRef = useRef(null);
 
   const handleChange = e => {
     setMessage(e.target.value)
@@ -34,6 +38,33 @@ const MessageForm = ({ messageData, currentChannel, currentUser, getMessagesData
         .child(user.uid)
         .remove()
     }
+  }
+
+  const togglePicker = () => {
+    setEmojiPicker(!emojiPicker)
+  }
+
+  const addEmoji = emoji => {
+    const oldMessage = message;
+    const newMessage = colonToUnicode(` ${oldMessage} ${emoji.colons} `)
+    setMessage(newMessage);
+    setEmojiPicker(false);
+    setTimeout(() => messageInputRef.current.focus(), 0)
+  }
+
+  const colonToUnicode = message => {
+    return message.replace(/:[A-Za-z0-9_+-]+:/g, x => {
+      x = x.replace(/:/g, "");
+      let emoji = emojiIndex.emojis[x];
+      if (typeof emoji !== "undefined") {
+        let unicode = emoji.native;
+        if (typeof unicode !== "undefined") {
+          return unicode;
+        }
+      }
+      x = ":" + x + ":";
+      return x;
+    });
   }
 
   const createMessage = (fileURL = null) => {
@@ -138,14 +169,30 @@ const MessageForm = ({ messageData, currentChannel, currentUser, getMessagesData
 
   return (
     <Segment className="message_form">
+      {emojiPicker && (
+        <Picker 
+          set="apple"
+          className="emojiPicker"
+          title="Picker your emoji"
+          emoji="point_up"
+          onSelect={addEmoji}
+        />
+      )}
       <Input
         fluid
+        ref={messageInputRef}
         name="message"
         onChange={handleChange}
         onKeyDown={handleKeyDown}
         value={message}
         style={{ marginBottom: '0.7em' }}
-        label={<Button icon='add'/>}
+        label={
+          <Button 
+            icon={emojiPicker ? 'close' : 'add'}
+            content={emojiPicker ? 'Close' : null}
+            onClick={togglePicker} 
+          />
+        }
         labelPosition="left"
         placeholder="Write your message"
         className={handleError('message')}
