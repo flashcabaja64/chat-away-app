@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import firebase from '../../firebase';
 import AvatarEditor from 'react-avatar-editor';
 import { Dropdown, Grid, Header, Icon, Image, Modal, Input, Button } from 'semantic-ui-react';
@@ -9,10 +9,11 @@ const UserNav = ({ currentUser, primaryColor }) => {
   const [rotate, setRotate] = useState(parseInt(0));
   const [previewImage, setPreviewImage] = useState('');
   const [croppedImage, setCroppedImage] = useState('');
-  const [uploadedCroppedImage, setUploadedCroppedImage] = useState('');
+  const [uploadedCroppedImage, setUploadedCroppedImage] = useStateCallback('');
   //const [startUpload, setStartUpload] = useState(false);
   const [blob, setBlob] = useState('');
   const avatarEditor = useRef(null);
+  const [avatar, setAvatar] = useState('')
   const [storageData] = useState(firebase.storage().ref());
   const [userData] = useState(firebase.auth().currentUser); 
   const [usersData] = useState(firebase.database().ref('users'));
@@ -26,6 +27,7 @@ const UserNav = ({ currentUser, primaryColor }) => {
   }
 
   const openModal = () => setOpen(true);
+
   const closeModal = () => {
     setOpen(false)
     setPreviewImage('')
@@ -59,7 +61,7 @@ const UserNav = ({ currentUser, primaryColor }) => {
     }
   }
 
-  const handleRange = e => setRotate(e.target.value)
+  const handleRange = e => setRotate(parseInt(e.target.value))
 
   const cropImage = () => {
     if(avatarEditor.current) {
@@ -78,12 +80,28 @@ const UserNav = ({ currentUser, primaryColor }) => {
       .put(blob, metaData)
       .then(image => {
         image.ref.getDownloadURL().then((url) => {
+          console.log(url)
           setUploadedCroppedImage(url);
-          changeAvatar();
+          console.log(url)
           //setStartUpload(true);
+          getAvatar()
         })
       })
       .catch(err => console.log(err))
+  }
+
+  const getAvatar = () => {
+    let storage = firebase.storage().ref(`avatars/user-${userData.uid}`)
+    storage.getDownloadURL().then(url => {
+      setAvatar(url)
+    })
+    .then(() => {
+      usersData
+        .child(userData.uid)
+        .update({ avatar: avatar })
+        .then(() => console.log('User avatar updated', avatar))
+        .catch(err => console.log(err))
+    })
   }
 
   const changeAvatar = () => {
@@ -92,15 +110,17 @@ const UserNav = ({ currentUser, primaryColor }) => {
         photoURL: uploadedCroppedImage
       })
       .then(() => {
+        console.log(uploadedCroppedImage)
         console.log('PhotoURL updated')
         closeModal();
       })
       .catch(err => console.log(err))
+      /*
       usersData
         .child(userData.uid)
         .update({ avatar: uploadedCroppedImage })
         .then(() => console.log('User avatar updated'))
-        .catch(err => console.log(err))
+        .catch(err => console.log(err))*/
   }
 
   return (
@@ -115,7 +135,7 @@ const UserNav = ({ currentUser, primaryColor }) => {
             <Dropdown 
               trigger={
                 <span>
-                  <Image src={currUser.user.photoURL} spaced="right" avatar/>
+                  <Image src={avatar} spaced="right" avatar/>
                   {currUser.user.displayName}
                 </span>
               }
@@ -188,6 +208,25 @@ const UserNav = ({ currentUser, primaryColor }) => {
       </Grid.Column>
     </Grid>
   )
+}
+
+const useStateCallback = (initialState) => {
+  const [state, setState] = useState(initialState);
+  const cbRef = useRef(null);
+
+  const setStateCallback = useCallback((state, cb) => {
+    cbRef.current = cb; 
+    setState(state);
+  }, []);
+
+  useEffect(() => {
+    if (cbRef.current) {
+      cbRef.current(state);
+      cbRef.current = null;
+    }
+  }, [state]);
+
+  return [state, setStateCallback];
 }
 
 export default UserNav;
