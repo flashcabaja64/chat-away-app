@@ -14,10 +14,10 @@ const isImage = (message) => {
   return message.hasOwnProperty('image') && !message.content.length
 }
 
-const Message = ({ message, user }) => {
+const Message = ({ message, user, avatar }) => {
   return (
     <Comment>
-      <Comment.Avatar src={message.user.avatar}/>
+      <Comment.Avatar src={avatar ? avatar : message.user.avatar}/>
       <Comment.Content className={isOwnMessage(message,user)}>
         <Comment.Author as="a">{message.user.name}</Comment.Author>
         <Comment.Metadata>{timeStamp(message.timestamp)}</Comment.Metadata>

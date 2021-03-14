@@ -18,7 +18,14 @@ const ColorPanel = ({ currentUser, setColors }) => {
     if(user) {
       addColors(user.uid)
     }
+    return () => {
+      removeListeners()
+    }
   }, [load])
+
+  const removeListeners = () => {
+    userData.child(`${user.uid}/colors`).off()
+  }
 
   const addColors = (userId) => {
     let userColors = [];

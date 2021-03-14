@@ -14,7 +14,17 @@ const DirectMessage = ({ currentUser, setCurrentChannel, setPrivateChannel }) =>
 
   useEffect(() => {
     user && getUsers(user.uid);
+
+    return () => {
+      removeListeners()
+    }
   },[])
+
+  const removeListeners = () => {
+    userData.off();
+    statusData.off();
+    onlineData.off();
+  }
 
   const addStatusToUser = (userId, connected = true) => {
     const updatedUsers = users.reduce((acc, user) => {

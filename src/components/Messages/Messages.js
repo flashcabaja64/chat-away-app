@@ -7,6 +7,7 @@ import MessageForm from './MessageForm';
 import Message from './Message';
 import MessagesHeader from './MessagesHeader';
 import Typing from './Typing';
+import Skeleton from './Skeleton'
 
 const Messages = ({ currentChannel, currentUser, isPrivateChannel, setUserPosts }) => {
   const [messageData] = useState({ messages: firebase.database().ref('messages') });
@@ -24,14 +25,22 @@ const Messages = ({ currentChannel, currentUser, isPrivateChannel, setUserPosts 
   const [connectedData] = useState(firebase.database().ref('.info/connected'))
   const [isFavorite, setIsFavorite] = useState(false);
   const [load, setLoad] = useState(false);
+  const [avatar, setAvatar] = useState('');
   const [typingUsers, setTypingUsers] = useState([]);
   const messageEnd = useRef(null);
   const mounted = useRef()
+  const [listeners, setListeners] = useState([])
 
   useEffect(() => {
     if(channel && user) {
+      removeListeners(listeners)
       getMessages(channel.id)
       addUserFavorites(channel.id, user.uid)
+      getAvatar();
+    }
+    return () => {
+      removeListeners(listeners);
+      connectedData.off();
     }
   }, []);
 
@@ -40,7 +49,7 @@ const Messages = ({ currentChannel, currentUser, isPrivateChannel, setUserPosts 
   },[searchMessage])
 
   useEffect(() => {
-    setMessageLoaded(false);
+    //setMessageLoaded(false);
     totalUsers(messages);
   }, [messages])
 
@@ -57,6 +66,22 @@ const Messages = ({ currentChannel, currentUser, isPrivateChannel, setUserPosts 
       }
     }
   })
+
+  const addToListners = (id, ref, event) => {
+    const index = listeners.findIndex(listener => {
+      return listener.id === id && listener.ref == ref && listener.event === event
+    })
+    if(index === -1) {
+      const newListener = { id, ref, event };
+      setListeners(listeners.concat(newListener));
+    }
+  }
+
+  const removeListeners = (listeners) => {
+    listeners.forEach(listener => {
+      listener.ref.child(listener.id).off(listener.event)
+    })
+  }
 
   const scrollToBottom = () => {
     messageEnd.current.scrollIntoView({ behavior: 'smooth' })
@@ -81,6 +106,8 @@ const Messages = ({ currentChannel, currentUser, isPrivateChannel, setUserPosts 
       }
     })
 
+    addToListners(channelId, typingData, 'child_added')
+
     typingData.child(channelId).on('child_removed', typing => {
       const index = typingUsers.findIndex(user => user.id === typing.key);
       if(index !== -1) {
@@ -88,6 +115,8 @@ const Messages = ({ currentChannel, currentUser, isPrivateChannel, setUserPosts 
         setTypingUsers(typingUsers)
       }
     })
+
+    addToListners(channelId, typingData, 'child_removed')
 
     connectedData.on('value', connect => {
       if(connect.val() === true) {
@@ -160,6 +189,7 @@ const Messages = ({ currentChannel, currentUser, isPrivateChannel, setUserPosts 
       setMessageLoaded(false)
       totalUsersPosts(updatedMessages)
     })
+    addToListners(channelId, data, 'child_added');
   }
 
   const getMessagesData = () => {
@@ -208,12 +238,25 @@ const Messages = ({ currentChannel, currentUser, isPrivateChannel, setUserPosts 
     setUserPosts(userPosts)
   }
 
+  const getAvatar = () => {
+    
+    let storage = firebase.storage().ref(`avatars/user-${userData.uid}`)
+    storage.getDownloadURL().then(url => {
+      console.log(url)
+      if(url) {
+        setAvatar(url) 
+      } else return
+    })
+    .catch(err => console.log(err))
+  }
+
   const displayMessages = messages => (
     messages.length > 0 && messages.map(msg => (
       <Message 
         key={msg.timestamp}
         message={msg}
         user={user}
+        avatar={avatar}
       />
     ))
   )
@@ -232,6 +275,16 @@ const Messages = ({ currentChannel, currentUser, isPrivateChannel, setUserPosts 
       : ''
   }
 
+  const displayMessagesSkeleton = loading => (
+    loading ? (
+      <>
+        {[...Array(10)].map((_, i) => (
+          <Skeleton key={i}/>
+        ))}
+      </>
+    ) : null
+  )
+
   return (
     <>
       <MessagesHeader 
@@ -244,6 +297,7 @@ const Messages = ({ currentChannel, currentUser, isPrivateChannel, setUserPosts 
       />
       <Segment>
         <Comment.Group className="messages">
+          {displayMessagesSkeleton(messageLoaded)}
           {searchMessage ? displayMessages(searchResults) : displayMessages(messages)}
           {displayTypingUsers(typingUsers)}
           <div ref={messageEnd}></div>

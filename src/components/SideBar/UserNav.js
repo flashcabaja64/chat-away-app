@@ -33,6 +33,10 @@ const UserNav = ({ currentUser, primaryColor }) => {
     setPreviewImage('')
   }
 
+  useEffect(() => {
+    getAvatar();
+  },[currUser])
+
   const dropdownOptions = [
     {
       key: 'user',
@@ -81,7 +85,7 @@ const UserNav = ({ currentUser, primaryColor }) => {
       .then(image => {
         image.ref.getDownloadURL().then((url) => {
           console.log(url)
-          setUploadedCroppedImage(url);
+          setUploadedCroppedImage(url, () => changeAvatar());
           console.log(url)
           //setStartUpload(true);
           getAvatar()
@@ -94,13 +98,6 @@ const UserNav = ({ currentUser, primaryColor }) => {
     let storage = firebase.storage().ref(`avatars/user-${userData.uid}`)
     storage.getDownloadURL().then(url => {
       setAvatar(url)
-    })
-    .then(() => {
-      usersData
-        .child(userData.uid)
-        .update({ avatar: avatar })
-        .then(() => console.log('User avatar updated', avatar))
-        .catch(err => console.log(err))
     })
   }
 
@@ -115,12 +112,12 @@ const UserNav = ({ currentUser, primaryColor }) => {
         closeModal();
       })
       .catch(err => console.log(err))
-      /*
-      usersData
-        .child(userData.uid)
-        .update({ avatar: uploadedCroppedImage })
-        .then(() => console.log('User avatar updated'))
-        .catch(err => console.log(err))*/
+      
+    usersData
+      .child(userData.uid)
+      .update({ avatar: uploadedCroppedImage })
+      .then(() => console.log('User avatar updated'))
+      .catch(err => console.log(err))
   }
 
   return (

@@ -14,7 +14,15 @@ const Favorites = ({ setCurrentChannel, setPrivateChannel, currentUser }) => {
     if(user) {
       addFavorites(user.uid);
     }
+
+    return () => {
+      removeListeners()
+    }
   }, [])
+
+  const removeListeners = () => {
+    userData.child(`${user.uid}/favorites`).off();
+  }
 
   const addFavorites = userId => {
     userData

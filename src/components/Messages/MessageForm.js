@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import firebase from '../../firebase';
 import UploadModal from './UploadModal';
@@ -15,18 +15,30 @@ const MessageForm = ({ messageData, currentChannel, currentUser, getMessagesData
   const [error, setError] = useState([])
   const [modal, setModal] = useState(false);
   const [uploadState, setUploadState] = useState('')
-  //const [uploadTask, setUploadTask] = useState(null);
+  const [uploadTask, setUploadTask] = useState(null);
   const [storageData] = useState(firebase.storage().ref());
   const [uploadProgress, setUploadProgress] = useState(0);
   const [typingData] = useState(firebase.database().ref('typing'));
   const [emojiPicker, setEmojiPicker] = useState(false);
   const messageInputRef = useRef(null);
 
+  useEffect(() => {
+    return () => {
+      if(uploadTask !== null) {
+        uploadTask.cancel();
+        setUploadTask(null);
+      }
+    }
+  })
+
   const handleChange = e => {
     setMessage(e.target.value)
   }
 
-  const handleKeyDown = () => {
+  const handleKeyDown = (event) => {
+    if(event.ctrlKey && event.keyCode === 13) {
+      sendMessage();
+    }
     if(message) {
       typingData
         .child(channel.id)
@@ -129,7 +141,7 @@ const MessageForm = ({ messageData, currentChannel, currentUser, getMessagesData
     setUploadState('uploading');
     
     try {
-      //setUploadTask(storageData.child(filePath).put(file, data));
+      setUploadTask(storageData.child(filePath).put(file, data));
       const task = storageData.child(filePath).put(file, data)
       //console.log(task)
       task.on('state_change', data => {
@@ -139,7 +151,7 @@ const MessageForm = ({ messageData, currentChannel, currentUser, getMessagesData
       (err) => {
         setError([...error, err]);
         setUploadState('error');
-        //setUploadTask(null);
+        setUploadTask(null);
         console.log(err);
       }, () => {
         task.snapshot.ref.getDownloadURL().then(url => {
@@ -149,7 +161,7 @@ const MessageForm = ({ messageData, currentChannel, currentUser, getMessagesData
     } catch (err) {
       setError([...error, err]);
       setUploadState('error');
-      //setUploadTask(null);
+      setUploadTask(null);
       console.log(err);
     }
   }
