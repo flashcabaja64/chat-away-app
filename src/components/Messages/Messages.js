@@ -36,7 +36,7 @@ const Messages = ({ currentChannel, currentUser, isPrivateChannel, setUserPosts 
       removeListeners(listeners)
       getMessages(channel.id)
       addUserFavorites(channel.id, user.uid)
-      getAvatar();
+      //getAvatar();
     }
     return () => {
       removeListeners(listeners);
@@ -238,17 +238,17 @@ const Messages = ({ currentChannel, currentUser, isPrivateChannel, setUserPosts 
     setUserPosts(userPosts)
   }
 
-  const getAvatar = () => {
+  // const getAvatar = () => {
     
-    let storage = firebase.storage().ref(`avatars/user-${userData.uid}`)
-    storage.getDownloadURL().then(url => {
-      console.log(url)
-      if(url) {
-        setAvatar(url) 
-      } else return
-    })
-    .catch(err => console.log(err))
-  }
+  //   let storage = firebase.storage().ref(`avatars/user/${userData.uid}`)
+  //   storage.getDownloadURL().then(url => {
+  //     console.log(url)
+  //     if(url) {
+  //       setAvatar(url) 
+  //     } else return
+  //   })
+  //   .catch(err => console.log(err))
+  // }
 
   const displayMessages = messages => (
     messages.length > 0 && messages.map(msg => (

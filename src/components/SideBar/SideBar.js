@@ -2,7 +2,7 @@ import React from 'react';
 import { Menu } from 'semantic-ui-react';
 import UserNav from './UserNav';
 import Channels from './Channels';
-import Favorites from './Favorites';
+//import Favorites from './Favorites';
 import DirectMessage from './DirectMessage'
 
 const SideBar = ({ currentUser, primaryColor }) => {
@@ -18,7 +18,7 @@ const SideBar = ({ currentUser, primaryColor }) => {
         currentUser={currentUser} 
         primaryColor={primaryColor}
       />
-      <Favorites currentUser={currentUser} />
+      {/* <Favorites currentUser={currentUser} /> */}
       <Channels currentUser={currentUser} />
       <DirectMessage currentUser={currentUser} />
     </Menu>

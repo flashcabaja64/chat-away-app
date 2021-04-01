@@ -43,10 +43,10 @@ const UserNav = ({ currentUser, primaryColor }) => {
       text: <span>Signed in as <strong>{currUser.user.displayName}</strong></span>,
       disabled: true
     },
-    {
-      key: 'avatar',
-      text: <span onClick={openModal}>Change Avatar</span>
-    },
+    // {
+    //   key: 'avatar',
+    //   text: <span onClick={openModal}>Change Avatar</span>
+    // },
     {
       key: 'log-out',
       text: <span onClick={handleSignOut}>Log Out</span>
@@ -80,7 +80,7 @@ const UserNav = ({ currentUser, primaryColor }) => {
   const uploadCroppedImage = () => {
     let metaData = { contentType: 'image/jpeg' }
     storageData
-      .child(`avatars/user-${userData.uid}`)
+      .child(`avatars/user/${userData.uid}`)
       .put(blob, metaData)
       .then(image => {
         image.ref.getDownloadURL().then((url) => {
@@ -95,7 +95,7 @@ const UserNav = ({ currentUser, primaryColor }) => {
   }
 
   const getAvatar = () => {
-    let storage = firebase.storage().ref(`avatars/user-${userData.uid}`)
+    let storage = firebase.storage().ref(`avatars/user/${userData.uid}`)
     storage.getDownloadURL().then(url => {
       setAvatar(url)
     })
@@ -132,7 +132,7 @@ const UserNav = ({ currentUser, primaryColor }) => {
             <Dropdown 
               trigger={
                 <span>
-                  <Image src={avatar} spaced="right" avatar/>
+                  <Image src={currUser.user.photoURL} spaced="right" avatar/>
                   {currUser.user.displayName}
                 </span>
               }

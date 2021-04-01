@@ -8,12 +8,12 @@ const MessagesHeader = ({ channelName, userCount, handleSearch, isPrivateChannel
       <Header fluid="true" as="h2" floadted="left" style={{ marginBottom: 0 }}>
         <span>
           {channelName}
-          {!isPrivateChannel && (
+          {/* {!isPrivateChannel && (
             <Icon 
               name={isFavorite ? 'star' : 'star outline'} 
               color={isFavorite ? 'yellow' : 'black'}
               onClick={handleFavorites}
-            />)}
+            />)} */}
         </span>
         <Header.Subheader>{userCount}</Header.Subheader>
       </Header>
