@@ -115,7 +115,6 @@ const MessageForm = ({ messageData, currentChannel, currentUser, getMessagesData
             .remove()
         })
         .catch(err => {
-          console.log(err)
           setIsLoading(false)
           setError([...err, err])
         })
@@ -143,7 +142,6 @@ const MessageForm = ({ messageData, currentChannel, currentUser, getMessagesData
     try {
       setUploadTask(storageData.child(filePath).put(file, data));
       const task = storageData.child(filePath).put(file, data)
-      //console.log(task)
       task.on('state_change', data => {
         const progress = Math.round((data.bytesTransferred / data.totalBytes) * 100)
         setUploadProgress(progress)
@@ -152,7 +150,6 @@ const MessageForm = ({ messageData, currentChannel, currentUser, getMessagesData
         setError([...error, err]);
         setUploadState('error');
         setUploadTask(null);
-        console.log(err);
       }, () => {
         task.snapshot.ref.getDownloadURL().then(url => {
           sendFileMessage(url, dataz, channelPath)
@@ -162,7 +159,6 @@ const MessageForm = ({ messageData, currentChannel, currentUser, getMessagesData
       setError([...error, err]);
       setUploadState('error');
       setUploadTask(null);
-      console.log(err);
     }
   }
 
@@ -175,7 +171,6 @@ const MessageForm = ({ messageData, currentChannel, currentUser, getMessagesData
       })
       .catch(err => {
         setError([...error, err]);
-        console.log(err)
       })
   }
 

@@ -24,8 +24,7 @@ const Login = () => {
     firebase
       .auth()
       .signInWithEmailAndPassword(values.email, values.password)
-      .then(loginUser => {
-        console.log(loginUser); 
+      .then(() => {
         setLoading(false);
         setError(false);
         setResStatus('');

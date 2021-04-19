@@ -14,7 +14,6 @@ const DirectMessage = ({ currentUser, setCurrentChannel, setPrivateChannel }) =>
 
   useEffect(() => {
     user && getUsers(user.uid);
-
     return () => {
       removeListeners()
     }
@@ -37,16 +36,24 @@ const DirectMessage = ({ currentUser, setCurrentChannel, setPrivateChannel }) =>
   }
 
   const getUsers = currentUserId => {
-    setUsers([])
+    //setUsers([])
+    let loadedUsers = []
     userData.on('child_added', (users) => {
+      
       if(currentUserId !== users.key) {
-        setUsers(state => {
-          let user = users.val();
-          user['uid'] = users.key;
-          user['status'] = 'offline';
-          return [...state, user]
-        })
+        let user = users.val();
+        user["uid"] = users.key;
+        user["status"] = "offline";
+        loadedUsers.push(user);
+        setUsers(loadedUsers);
+        // setUsers(state => {
+        //   let user = users.val();
+        //   user['uid'] = users.key;
+        //   user['status'] = 'offline';
+        //   return [...state, user]
+        // })
       }
+      
     })
     onlineData.on('value', online => {
       if(online.val() === true) {
@@ -83,7 +90,6 @@ const DirectMessage = ({ currentUser, setCurrentChannel, setPrivateChannel }) =>
     setCurrentChannel(channelData);
     setPrivateChannel(true);
     setActiveChannel(user.uid)
-    //console.log(user)
   }
 
   const getChannelId = userId => {

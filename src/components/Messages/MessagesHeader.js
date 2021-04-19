@@ -2,7 +2,6 @@ import React from 'react';
 import { Header, Segment, Input, Icon } from 'semantic-ui-react';
 
 const MessagesHeader = ({ channelName, userCount, handleSearch, isPrivateChannel, isFavorite, handleFavorites }) => {
-  //console.log(channelName)
   return (
     <Segment clearing>
       <Header fluid="true" as="h2" floadted="left" style={{ marginBottom: 0 }}>

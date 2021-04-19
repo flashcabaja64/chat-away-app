@@ -17,7 +17,6 @@ const Root = ({ setUser, isLoading, clearUser }) => {
   let history = useHistory();
 
   useEffect(() => {
-    console.log(isLoading)
     firebase.auth().onAuthStateChanged(authUser => {
       if(authUser) {
         setUser(authUser)
@@ -39,6 +38,7 @@ const Root = ({ setUser, isLoading, clearUser }) => {
     )
   )
 }
+
 const mapStateFromProps = state => ({
   isLoading: state.user.isLoading
 })

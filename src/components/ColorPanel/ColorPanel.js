@@ -70,7 +70,6 @@ const ColorPanel = ({ currentUser, setColors }) => {
         secondary
       })
       .then(() => {
-        console.log('colors added')
         closeModal();
       })
       .catch(err => console.log(err))

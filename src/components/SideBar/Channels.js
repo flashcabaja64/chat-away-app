@@ -135,8 +135,6 @@ class Channels extends React.Component {
     this.setState({ [event.target.name]: event.target.value });
   };
 
-
-
   changeChannel = channel => {
     this.setActiveChannel(channel);
     this.state.typingRef

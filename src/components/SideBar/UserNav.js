@@ -33,9 +33,9 @@ const UserNav = ({ currentUser, primaryColor }) => {
     setPreviewImage('')
   }
 
-  useEffect(() => {
-    getAvatar();
-  },[currUser])
+  // useEffect(() => {
+  //   getAvatar();
+  // },[currUser])
 
   const dropdownOptions = [
     {
@@ -80,7 +80,7 @@ const UserNav = ({ currentUser, primaryColor }) => {
   const uploadCroppedImage = () => {
     let metaData = { contentType: 'image/jpeg' }
     storageData
-      .child(`avatars/user/${userData.uid}`)
+      .child(`avatars/user-${userData.uid}`)
       .put(blob, metaData)
       .then(image => {
         image.ref.getDownloadURL().then((url) => {
@@ -88,18 +88,18 @@ const UserNav = ({ currentUser, primaryColor }) => {
           setUploadedCroppedImage(url, () => changeAvatar());
           console.log(url)
           //setStartUpload(true);
-          getAvatar()
+          //getAvatar()
         })
       })
       .catch(err => console.log(err))
   }
 
-  const getAvatar = () => {
-    let storage = firebase.storage().ref(`avatars/user/${userData.uid}`)
-    storage.getDownloadURL().then(url => {
-      setAvatar(url)
-    })
-  }
+  // const getAvatar = () => {
+  //   let storage = firebase.storage().ref(`avatars/user/${userData.uid}`)
+  //   storage.getDownloadURL().then(url => {
+  //     setAvatar(url)
+  //   })
+  // }
 
   const changeAvatar = () => {
     userData

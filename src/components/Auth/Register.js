@@ -35,6 +35,7 @@ const Register = () => {
         })
         .then(() => {
           saveUser(newUser).then(() => console.log('user saved'));
+          window.location.reload()
           setLoading(false);
           setError(false);
           setResStatus('');
@@ -44,14 +45,12 @@ const Register = () => {
           setError(true);
           setResStatus(err.message);
         })
-        console.log(newUser);
       })
       .catch(err => {
         setLoading(false);
         setError(true);
         setResStatus(err.message);
       })
-    console.log(values)
   }
 
   const saveUser = createdUser => {
