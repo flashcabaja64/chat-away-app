@@ -1,317 +1,318 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Segment, Comment } from 'semantic-ui-react';
-import { connect } from 'react-redux';
-import { setUserPosts } from '../../actions'
-import firebase from '../../firebase';
-import MessageForm from './MessageForm';
-import Message from './Message';
-import MessagesHeader from './MessagesHeader';
-import Typing from './Typing';
-import Skeleton from './Skeleton'
+import React from "react";
+import { Segment, Comment } from "semantic-ui-react";
+import { connect } from "react-redux";
+import { setUserPosts } from "../../actions";
+import firebase from "../../firebase";
 
-const Messages = ({ currentChannel, currentUser, isPrivateChannel, setUserPosts }) => {
-  const [messageData] = useState({ messages: firebase.database().ref('messages') });
-  const [messages, setMessages] = useState([]);
-  const [messageLoaded, setMessageLoaded] = useState(true)
-  const [channel] = useState(currentChannel);
-  const [user] = useState(currentUser);
-  const [userData] = useState(firebase.database().ref('users'));
-  const [userCount, setUserCount] = useState('');
-  const [searchMessage, setSearchMessage] = useState('');
-  const [searchResults, setSearchResults] = useState([])
-  const [privateChannel] = useState(isPrivateChannel)
-  const [privateMessageData] = useState(firebase.database().ref('privateMessages'))
-  const [typingData] = useState(firebase.database().ref('typing'))
-  const [connectedData] = useState(firebase.database().ref('.info/connected'))
-  const [isFavorite, setIsFavorite] = useState(false);
-  const [load, setLoad] = useState(false);
-  const [avatar, setAvatar] = useState('');
-  const [typingUsers, setTypingUsers] = useState([]);
-  const messageEnd = useRef(null);
-  const mounted = useRef()
-  const [listeners, setListeners] = useState([])
+import MessagesHeader from "./MessagesHeader";
+import MessageForm from "./MessageForm";
+import Message from "./Message";
+import Typing from "./Typing";
+import Skeleton from "./Skeleton";
 
-  useEffect(() => {
-    if(channel && user) {
-      removeListeners(listeners)
-      getMessages(channel.id)
-      addUserFavorites(channel.id, user.uid)
-      getAvatar();
-    }
-    return () => {
-      removeListeners(listeners);
-      connectedData.off();
-    }
-  }, []);
+class Messages extends React.Component {
+  state = {
+    privateChannel: this.props.isPrivateChannel,
+    privateMessagesRef: firebase.database().ref("privateMessages"),
+    messagesRef: firebase.database().ref("messages"),
+    messages: [],
+    messagesLoading: true,
+    channel: this.props.currentChannel,
+    isChannelStarred: false,
+    user: this.props.currentUser,
+    usersRef: firebase.database().ref("users"),
+    numUniqueUsers: "",
+    searchTerm: "",
+    searchLoading: false,
+    searchResults: [],
+    typingRef: firebase.database().ref("typing"),
+    typingUsers: [],
+    connectedRef: firebase.database().ref(".info/connected"),
+    listeners: []
+  };
 
-  useEffect(() => {
-    searchChannelMessage();
-  },[searchMessage])
+  componentDidMount() {
+    const { channel, user, listeners } = this.state;
 
-  useEffect(() => {
-    //setMessageLoaded(false);
-    totalUsers(messages);
-  }, [messages])
-
-  // useEffect(() => {
-  //   favoriteChannel()
-  // }, [load])
-
-  useEffect(() => {
-    if(!mounted.current) {
-      mounted.current = true
-    } else {
-      if(messageEnd) {
-        scrollToBottom()
-      }
-    }
-  })
-
-  const addToListners = (id, ref, event) => {
-    const index = listeners.findIndex(listener => {
-      return listener.id === id && listener.ref == ref && listener.event === event
-    })
-    if(index === -1) {
-      const newListener = { id, ref, event };
-      setListeners(listeners.concat(newListener));
+    if (channel && user) {
+      this.removeListeners(listeners);
+      this.addListeners(channel.id);
+      this.addUserStarsListener(channel.id, user.uid);
     }
   }
 
-  const removeListeners = (listeners) => {
+  componentWillUnmount() {
+    this.removeListeners(this.state.listeners);
+    this.state.connectedRef.off();
+  }
+
+  removeListeners = listeners => {
     listeners.forEach(listener => {
-      listener.ref.child(listener.id).off(listener.event)
-    })
+      listener.ref.child(listener.id).off(listener.event);
+    });
+  };
+
+  componentDidUpdate(prevProps, prevState) {
+    if (this.messagesEnd) {
+      this.scrollToBottom();
+    }
   }
 
-  const scrollToBottom = () => {
-    messageEnd.current.scrollIntoView({ behavior: 'smooth' })
-  }
+  addToListeners = (id, ref, event) => {
+    const index = this.state.listeners.findIndex(listener => {
+      return (
+        listener.id === id && listener.ref === ref && listener.event === event
+      );
+    });
 
-  const getMessages = channelId => {
-    addMessages(channelId)
-    addTyping(channelId)
-    setLoad(true);
-  }
+    if (index === -1) {
+      const newListener = { id, ref, event };
+      this.setState({ listeners: this.state.listeners.concat(newListener) });
+    }
+  };
 
-  const addTyping = channelId => {
+  scrollToBottom = () => {
+    this.messagesEnd.scrollIntoView({ behavior: "smooth" });
+  };
+
+  addListeners = channelId => {
+    this.addMessageListener(channelId);
+    this.addTypingListeners(channelId);
+  };
+
+  addTypingListeners = channelId => {
     let typingUsers = [];
-
-    typingData.child(channelId).on('child_added', typing => {
-      if(typing.key !== user.uid) {
+    this.state.typingRef.child(channelId).on("child_added", snap => {
+      if (snap.key !== this.state.user.uid) {
         typingUsers = typingUsers.concat({
-          id: typing.key,
-          name: typing.val()
-        })
-        setTypingUsers(typingUsers)
+          id: snap.key,
+          name: snap.val()
+        });
+        this.setState({ typingUsers });
       }
-    })
+    });
+    this.addToListeners(channelId, this.state.typingRef, "child_added");
 
-    addToListners(channelId, typingData, 'child_added')
-
-    typingData.child(channelId).on('child_removed', typing => {
-      const index = typingUsers.findIndex(user => user.id === typing.key);
-      if(index !== -1) {
-        typingUsers = typingUsers.filter(user => user.id !== typing.key);
-        setTypingUsers(typingUsers)
+    this.state.typingRef.child(channelId).on("child_removed", snap => {
+      const index = typingUsers.findIndex(user => user.id === snap.key);
+      if (index !== -1) {
+        typingUsers = typingUsers.filter(user => user.id !== snap.key);
+        this.setState({ typingUsers });
       }
-    })
+    });
+    this.addToListeners(channelId, this.state.typingRef, "child_removed");
 
-    addToListners(channelId, typingData, 'child_removed')
-
-    connectedData.on('value', connect => {
-      if(connect.val() === true) {
-        typingData
+    this.state.connectedRef.on("value", snap => {
+      if (snap.val() === true) {
+        this.state.typingRef
           .child(channelId)
-          .child(user.uid)
+          .child(this.state.user.uid)
           .onDisconnect()
           .remove(err => {
-            if(err !== null) {
-              console.error(err)
+            if (err !== null) {
+              console.error(err);
             }
-          })
+          });
       }
-    })
-  }
+    });
+  };
 
-  const addUserFavorites = (channelId, userId) => {
-    userData
+  addMessageListener = channelId => {
+    let loadedMessages = [];
+    const ref = this.getMessagesData();
+    ref.child(channelId).on("child_added", snap => {
+      loadedMessages.push(snap.val());
+      this.setState({
+        messages: loadedMessages,
+        messagesLoading: false
+      });
+      this.countUniqueUsers(loadedMessages);
+      this.countUserPosts(loadedMessages);
+    });
+    this.addToListeners(channelId, ref, "child_added");
+  };
+
+  addUserStarsListener = (channelId, userId) => {
+    this.state.usersRef
       .child(userId)
-      .child('favorites')
-      .once('value')
+      .child("starred")
+      .once("value")
       .then(data => {
-        if(data.val() !== null) {
-          //console.log(data.val())
+        if (data.val() !== null) {
           const channelIds = Object.keys(data.val());
-          const prevFavs = channelIds.includes(channelId);
-          setIsFavorite(prevFavs)
-          //console.log(channelIds, channelId)
-          //console.log(isFavorite)
+          const prevStarred = channelIds.includes(channelId);
+          this.setState({ isChannelStarred: prevStarred });
         }
-      })
-  }
+      });
+  };
 
-  const handleFavorites = () => {
-    setIsFavorite(state => !state);
-  }
+  getMessagesData = () => {
+    const { messagesRef, privateMessagesRef, privateChannel } = this.state;
+    return privateChannel ? privateMessagesRef : messagesRef;
+  };
 
-  const favoriteChannel = () => {
-    if(isFavorite) {
-      userData
-        .child(`${user.uid}/favorites`)
-        .update({
-          [channel.id]: {
-            name: channel.name,
-            details: channel.details,
-            createdBy: {
-              name: channel.createdBy.name,
-              avatar: channel.createdBy.avatar
-            }
+  handleStar = () => {
+    this.setState(
+      prevState => ({
+        isChannelStarred: !prevState.isChannelStarred
+      }),
+      () => this.starChannel()
+    );
+  };
+
+  starChannel = () => {
+    if (this.state.isChannelStarred) {
+      this.state.usersRef.child(`${this.state.user.uid}/starred`).update({
+        [this.state.channel.id]: {
+          name: this.state.channel.name,
+          details: this.state.channel.details,
+          createdBy: {
+            name: this.state.channel.createdBy.name,
+            avatar: this.state.channel.createdBy.avatar
           }
-        })
+        }
+      });
     } else {
-      userData
-        .child(`${user.uid}/favorites`)
-        .child(channel.id)
+      this.state.usersRef
+        .child(`${this.state.user.uid}/starred`)
+        .child(this.state.channel.id)
         .remove(err => {
-          if(err !== null) {
-            console.error(err)
+          if (err !== null) {
+            console.error(err);
           }
-        })
+        });
     }
-  }
+  };
 
-  const addMessages = channelId => {
-    let updatedMessages = [];
-    const data = getMessagesData();
-    data.child(channelId).on('child_added', msg => {
-      updatedMessages.push(msg.val())
-      setMessages(updatedMessages)
-      setMessageLoaded(false)
-      totalUsersPosts(updatedMessages)
-    })
-    addToListners(channelId, data, 'child_added');
-  }
+  handleSearchChange = event => {
+    this.setState(
+      {
+        searchTerm: event.target.value,
+        searchLoading: true
+      },
+      () => this.handleSearchMessages()
+    );
+  };
 
-  const getMessagesData = () => {
-    return privateChannel ? privateMessageData : messageData.messages
-  }
-
-  const handleSearchInput = e => {
-    setSearchMessage(e.target.value);
-  }
-
-  const searchChannelMessage = () => {
-    const channelMessages = [...messages];
-    const regex = new RegExp(searchMessage, 'gi');
-    const results = channelMessages.reduce((acc, message) => {
-      if(message.content.match(regex) && message.content || message.user.name.match(regex)) {
-        acc.push(message)
+  handleSearchMessages = () => {
+    const channelMessages = [...this.state.messages];
+    const regex = new RegExp(this.state.searchTerm, "gi");
+    const searchResults = channelMessages.reduce((acc, message) => {
+      if (
+        (message.content && message.content.match(regex)) ||
+        message.user.name.match(regex)
+      ) {
+        acc.push(message);
       }
-      return acc
-    },[])
-    setSearchResults([...results])
-  }
+      return acc;
+    }, []);
+    this.setState({ searchResults });
+    setTimeout(() => this.setState({ searchLoading: false }), 1000);
+  };
 
-  const totalUsers = messages => {
-    const users = messages.reduce((acc, message) => {
-      if(!acc.includes(message.user.name)) {
-        acc.push(message.user.name)
+  countUniqueUsers = messages => {
+    const uniqueUsers = messages.reduce((acc, message) => {
+      if (!acc.includes(message.user.name)) {
+        acc.push(message.user.name);
       }
-      return acc
-    }, [])
-    const plural = users.length > 1 || users.length === 0 ? 'Users' : 'User'
-    setUserCount(`${users.length} ${plural}`)
-  }
+      return acc;
+    }, []);
+    const plural = uniqueUsers.length > 1 || uniqueUsers.length === 0;
+    const numUniqueUsers = `${uniqueUsers.length} user${plural ? "s" : ""}`;
+    this.setState({ numUniqueUsers });
+  };
 
-  const totalUsersPosts = messages => {
+  countUserPosts = messages => {
     let userPosts = messages.reduce((acc, message) => {
-      if(message.user.name in acc) {
+      if (message.user.name in acc) {
         acc[message.user.name].count += 1;
       } else {
         acc[message.user.name] = {
           avatar: message.user.avatar,
           count: 1
-        }
+        };
       }
-      return acc
-    }, {})
-    setUserPosts(userPosts)
-  }
+      return acc;
+    }, {});
+    this.props.setUserPosts(userPosts);
+  };
 
-  const getAvatar = () => {
-    
-    let storage = firebase.storage().ref(`avatars/user-${userData.uid}`)
-    storage.getDownloadURL().then(url => {
-      console.log(url)
-      if(url) {
-        setAvatar(url) 
-      } else return
-    })
-    .catch(err => console.log(err))
-  }
-
-  const displayMessages = messages => (
-    messages.length > 0 && messages.map(msg => (
-      <Message 
-        key={msg.timestamp}
-        message={msg}
-        user={user}
-        avatar={avatar}
+  displayMessages = messages =>
+    messages.length > 0 &&
+    messages.map(message => (
+      <Message
+        key={message.timestamp}
+        message={message}
+        user={this.state.user}
       />
-    ))
-  )
+    ));
 
-  const displayTypingUsers = users => (
-    users.length > 0 && users.map(user => (
-      <div key={user.id} style={{ display: 'flex', alignItems: 'center', marginBottom: '0.2em' }}>
-        <span className="user_typing"></span>{user.name} is typing<Typing />
+  displayChannelName = channel => {
+    return channel
+      ? `${this.state.privateChannel ? "@" : "#"}${channel.name}`
+      : "";
+  };
+
+  displayTypingUsers = users =>
+    users.length > 0 &&
+    users.map(user => (
+      <div
+        style={{ display: "flex", alignItems: "center", marginBottom: "0.2em" }}
+        key={user.id}
+      >
+        <span className="user__typing">{user.name} is typing</span> <Typing />
       </div>
-    ))
-  )
+    ));
 
-  const displayChannelName = channel => {
-    return channel 
-      ? `${privateChannel ? '@' : '#'}${channel.name}`
-      : ''
-  }
-
-  const displayMessagesSkeleton = loading => (
+  displayMessageSkeleton = loading =>
     loading ? (
-      <>
+      <React.Fragment>
         {[...Array(10)].map((_, i) => (
-          <Skeleton key={i}/>
+          <Skeleton key={i} />
         ))}
-      </>
-    ) : null
-  )
+      </React.Fragment>
+    ) : null;
 
-  return (
-    <>
-      <MessagesHeader 
-        channelName={displayChannelName(channel)}
-        userCount={userCount}
-        handleSearch={handleSearchInput}
-        isPrivateChannel={isPrivateChannel}
-        isFavorite={isFavorite}
-        handleFavorites={handleFavorites}
-      />
-      <Segment>
-        <Comment.Group className="messages">
-          {displayMessagesSkeleton(messageLoaded)}
-          {searchMessage ? displayMessages(searchResults) : displayMessages(messages)}
-          {displayTypingUsers(typingUsers)}
-          <div ref={messageEnd}></div>
-        </Comment.Group>
-      </Segment>
-      <MessageForm 
-        messageData={messageData.messages}
-        currentChannel={channel}
-        currentUser={user}
-        isPrivateChannel={isPrivateChannel}
-        getMessagesData={getMessagesData}
-      />
-    </>
-  )
+  render() {
+    // prettier-ignore
+    const { messagesRef, messages, channel, user, numUniqueUsers, searchTerm, searchResults, searchLoading, privateChannel, isChannelStarred, typingUsers, messagesLoading } = this.state;
+
+    return (
+      <React.Fragment>
+        <MessagesHeader
+          channelName={this.displayChannelName(channel)}
+          userCount={numUniqueUsers}
+          handleSearch={this.handleSearchChange}
+          searchLoading={searchLoading}
+          isPrivateChannel={privateChannel}
+          handleFavorites={this.handleStar}
+          isFavorite={isChannelStarred}
+        />
+
+        <Segment>
+          <Comment.Group className="messages">
+            {this.displayMessageSkeleton(messagesLoading)}
+            {searchTerm
+              ? this.displayMessages(searchResults)
+              : this.displayMessages(messages)}
+            {this.displayTypingUsers(typingUsers)}
+            <div ref={node => (this.messagesEnd = node)} />
+          </Comment.Group>
+        </Segment>
+
+        <MessageForm
+          messageData={messagesRef}
+          currentChannel={channel}
+          currentUser={user}
+          isPrivateChannel={privateChannel}
+          getMessagesData={this.getMessagesData}
+        />
+      </React.Fragment>
+    );
+  }
 }
 
-export default connect(null, { setUserPosts })(Messages);
+export default connect(
+  null,
+  { setUserPosts }
+)(Messages);

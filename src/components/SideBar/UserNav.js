@@ -32,11 +32,11 @@ const UserNav = ({ currentUser, primaryColor }) => {
     setOpen(false)
     setPreviewImage('')
   }
-
+/*
   useEffect(() => {
     getAvatar();
   },[currUser])
-
+*/
   const dropdownOptions = [
     {
       key: 'user',
@@ -88,19 +88,19 @@ const UserNav = ({ currentUser, primaryColor }) => {
           setUploadedCroppedImage(url, () => changeAvatar());
           console.log(url)
           //setStartUpload(true);
-          getAvatar()
+          //getAvatar()
         })
       })
       .catch(err => console.log(err))
   }
-
+/*
   const getAvatar = () => {
     let storage = firebase.storage().ref(`avatars/user-${userData.uid}`)
     storage.getDownloadURL().then(url => {
       setAvatar(url)
     })
   }
-
+*/
   const changeAvatar = () => {
     userData
       .updateProfile({
