@@ -13,6 +13,8 @@ import { BrowserRouter as Router, Switch, Route, useHistory } from 'react-router
 import reducer from './reducers';
 import { setUser, clearUser } from './actions'
 
+const store = createStore(reducer, composeWithDevTools())
+
 const Root = ({ setUser, isLoading, clearUser }) => {
   let history = useHistory();
 
@@ -43,7 +45,7 @@ const mapStateFromProps = state => ({
   isLoading: state.user.isLoading
 })
 
-const store = createStore(reducer, composeWithDevTools())
+
 const RootAuth = connect(mapStateFromProps, { setUser, clearUser })(Root)
 
 ReactDOM.render(
