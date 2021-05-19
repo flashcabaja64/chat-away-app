@@ -316,3 +316,4 @@ export default connect(
   null,
   { setUserPosts }
 )(Messages);
+
