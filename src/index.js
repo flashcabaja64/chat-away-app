@@ -19,21 +19,21 @@ const Root = ({ setUser, isLoading, clearUser }) => {
   let history = useHistory();
 
   useEffect(() => {
-    firebase.auth().onAuthStateChanged(authUser => {
-      if(authUser) {
-        setUser(authUser)
-        history.push('/')
-      } else {
-        clearUser();
-        history.push('/login');
-      }
-    })
+      firebase.auth().onAuthStateChanged(authUser => {
+        if(authUser) {
+          setUser(authUser)
+          history.push('/home')
+        } else {
+          clearUser();
+          history.push('/login');
+        }
+      })
   }, []) 
 
   return (
     isLoading ? <Spinner /> : (
       <Switch>
-        <Route exact path="/" component={App} />
+        <Route exact path="/home" component={App} />
         <Route path="/login" component={Login} />
         <Route path="/register" component={Register} />
       </Switch>

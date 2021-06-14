@@ -94,16 +94,6 @@ const UserNav = ({ currentUser, primaryColor }) => {
       })
       .catch(err => console.log(err))
   }
-<<<<<<< HEAD
-
-  // const getAvatar = () => {
-  //   let storage = firebase.storage().ref(`avatars/user/${userData.uid}`)
-  //   storage.getDownloadURL().then(url => {
-  //     setAvatar(url)
-  //   })
-  // }
-
-=======
 /*
   const getAvatar = () => {
     let storage = firebase.storage().ref(`avatars/user-${userData.uid}`)
@@ -112,7 +102,6 @@ const UserNav = ({ currentUser, primaryColor }) => {
     })
   }
 */
->>>>>>> b2d5dec1a7e14f5a4df0b4e7efa15b3c887bf45a
   const changeAvatar = () => {
     userData
       .updateProfile({
